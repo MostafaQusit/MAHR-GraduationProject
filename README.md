@@ -1,2 +1,2 @@
-# MAHR-Project
+# MAHR-GraduationProject
 Multi-function Autonomous Household Robot
