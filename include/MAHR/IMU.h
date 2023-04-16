@@ -24,7 +24,7 @@ void IMU_Setup() {
 
   if (!IMU.setup(0x68)) {  // change to your own address
       while (1) {
-          Serial.println("IMU connection failed. Please check your connection with `connection_check` example.");
+          Serial.println(F("IMU connection failed. Please check your connection with `connection_check` example."));
           delay(5000);
       }
   }

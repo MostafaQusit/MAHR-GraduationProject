@@ -10,14 +10,11 @@
 MDNSResponder mdns;
 WebServer server(80);
 String webpage = "";
-uint8_t Speed;
+uint8_t Speed = 1;
 
 IPAddress local_IP(192, 168, 1, 184); // Set your Static  IP address
 IPAddress gateway(192, 168, 1, 1);    // Set your Gateway IP address
-
 IPAddress subnet(255, 255, 0, 0);
-//IPAddress primaryDNS(8, 8, 8, 8);   // optional
-//IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
 // Transaction (Send & Receive) Setup for App
 void App_TransactionSetup() {
@@ -28,7 +25,7 @@ void App_TransactionSetup() {
              <p>Move Robot  <a href=\"left\"    ><button>Left    </button></a></p>\n\
              <p>Robot Speed <a href=\"Speed\"   >"  +  String(Speed)  +  "</a></p>\n";
   
-  server.on("/"        , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=          0; RightMotor_Speed=          0;});
+  server.on("/"        , []() {server.send(200, "text/html", webpage);  /*LeftMotor_Speed=          0; RightMotor_Speed=          0;*/});
   server.on("/forward" , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= 3.14*Speed; RightMotor_Speed= 3.14*Speed;});
   server.on("/backward", []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=-3.14*Speed; RightMotor_Speed=-3.14*Speed;});
   server.on("/right"   , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= 3.14*Speed; RightMotor_Speed=-3.14*Speed;});

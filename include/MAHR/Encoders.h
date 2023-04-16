@@ -45,7 +45,7 @@ void Encoders_Setup() {
 void Encoders_DataUpdate() {
   RightEncoder_Distance = RightEncoder.getCount();
   LeftEncoder_Distance  = LeftEncoder.getCount();
-
+  /* Speed Calcu.
   RightEncoder_degs = (RightEncoder_Distance - RightEncoder_PrevDistance) / (millis() - Prev_millis);
   LeftEncoder_degs  = ( LeftEncoder_Distance -  LeftEncoder_PrevDistance) / (millis() - Prev_millis);
 
@@ -53,12 +53,18 @@ void Encoders_DataUpdate() {
   LeftEncoder_Speed = (int16_t) LeftEncoder_degs  * (PI/180.0)*WHEEL_RADIUS_MM;
 
   Prev_millis = millis();
+  */
 }
 // Print the Encoder Position and Speed
 void Encoders_PrintData() {
-  Serial.printf("Encoders: Position(%6d,%6d)deg\tSpeed(%6d,%6d)mm/s\n",
-                LeftEncoder_Distance, RightEncoder_Distance,
-                LeftEncoder_Speed   , RightEncoder_Speed   );
+  Serial.print(LeftEncoder_Distance); Serial.print(F("\t"));   Serial.println(RightEncoder_Distance);
+  /*
+  Serial.printf("Encoders: Position(%6d,%6d)deg\tSpeed(%6d,%6d)\n",
+                LeftEncoder_Distance,
+                RightEncoder_Distance, 
+                LeftEncoder_Speed, 
+                RightEncoder_Speed );
+  */
 }
 
 #endif

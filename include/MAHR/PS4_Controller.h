@@ -13,8 +13,8 @@
 uint8_t battery = 0;
 float_t w, r, g, lsx, lsy;
 uint16_t amp, other;
-int16_t linearSpeed = 175;
-int16_t rotatiSpeed = 314;
+int16_t linearSpeed = 120;
+int16_t rotatiSpeed = 120;
 
 // Print all variables that PS4 Controller can update
 void PS4_PrintAll() {
@@ -41,8 +41,8 @@ void PS4_PrintAll() {
 }
 // make action for any required event in the PS4 Controller
 void notify(){
-  if     ( PS4.Up()    ) { LeftMotor_Speed= linearSpeed*0.88; RightMotor_Speed= linearSpeed; }
-  else if( PS4.Down()  ) { LeftMotor_Speed=-linearSpeed*0.55; RightMotor_Speed=-linearSpeed; }
+  if     ( PS4.Up()    ) { LeftMotor_Speed= linearSpeed; RightMotor_Speed= linearSpeed; }
+  else if( PS4.Down()  ) { LeftMotor_Speed=-linearSpeed; RightMotor_Speed=-linearSpeed; }
   else if( PS4.Right() ) { LeftMotor_Speed= rotatiSpeed; RightMotor_Speed=-rotatiSpeed; }
   else if( PS4.Left()  ) { LeftMotor_Speed=-rotatiSpeed; RightMotor_Speed= rotatiSpeed; }
   else                   { LeftMotor_Speed=           0; RightMotor_Speed=           0; }
@@ -97,23 +97,14 @@ void PS4_Setup() {
 // Check if any required event (that not in handler function) happen
 void PS4_DataUpdate() {
   //------ Digital cross/square/triangle/circle buttons ------
-  if( PS4.data.button.cross && PS4.data.button.down )
-      Serial.println("Pressing both the down and cross buttons");
-  if( PS4.data.button.square && PS4.data.button.left )
-      Serial.println("Pressing both the square and left buttons");
-  if( PS4.data.button.triangle && PS4.data.button.up )
-      Serial.println("Pressing both the triangle and up buttons");
-  if( PS4.data.button.circle && PS4.data.button.right )
-      Serial.println("Pressing both the circle and right buttons");
-
-  if( PS4.data.button.l1 && PS4.data.button.r1 )
-      Serial.println("Pressing both the left and right bumper buttons");
-  if( PS4.data.button.l2 && PS4.data.button.r2 )
-      Serial.println("Pressing both the left and right trigger buttons");
-  if( PS4.data.button.l3 && PS4.data.button.r3 )
-      Serial.println("Pressing both the left and right stick buttons");
-  if( PS4.data.button.share && PS4.data.button.options )
-      Serial.println("Pressing both the share and options buttons");
+  if(PS4.data.button.cross    && PS4.data.button.down   ) {Serial.println(F("Pressing both the down     & cross     buttons"));}
+  if(PS4.data.button.square   && PS4.data.button.left   ) {Serial.println(F("Pressing both the square   & left      buttons"));}
+  if(PS4.data.button.triangle && PS4.data.button.up     ) {Serial.println(F("Pressing both the triangle & up        buttons"));}
+  if(PS4.data.button.circle   && PS4.data.button.right  ) {Serial.println(F("Pressing both the circle   & right     buttons"));}
+  if(PS4.data.button.l1       && PS4.data.button.r1     ) {Serial.println(F("Pressing both the left     & R.bumper  buttons"));}
+  if(PS4.data.button.l2       && PS4.data.button.r2     ) {Serial.println(F("Pressing both the left     & R.trigger buttons"));}
+  if(PS4.data.button.l3       && PS4.data.button.r3     ) {Serial.println(F("Pressing both the left     & R.stick   buttons"));}
+  if(PS4.data.button.share    && PS4.data.button.options) {Serial.println(F("Pressing both the share    & options   buttons"));}
 }
 // Print all variables that PS4 Controller can update
 void PS4_PrintData() {
