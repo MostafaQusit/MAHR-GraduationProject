@@ -19,17 +19,24 @@ IPAddress subnet(255, 255, 0, 0);
 // Transaction (Send & Receive) Setup for App
 void App_TransactionSetup() {
   webpage = "<h1>ESP32 Web Server</h1>\n\
-             <p>Move Robot  <a href=\"forward\" ><button>Forward </button></a></p>\n\
-             <p>Move Robot  <a href=\"backward\"><button>Backward</button></a></p>\n\
-             <p>Move Robot  <a href=\"right\"   ><button>Right   </button></a></p>\n\
-             <p>Move Robot  <a href=\"left\"    ><button>Left    </button></a></p>\n\
-             <p>Robot Speed <a href=\"Speed\"   >"  +  String(Speed)  +  "</a></p>\n";
-  
-  server.on("/"        , []() {server.send(200, "text/html", webpage);  /*LeftMotor_Speed=          0; RightMotor_Speed=          0;*/});
-  server.on("/forward" , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= 3.14*Speed; RightMotor_Speed= 3.14*Speed;});
-  server.on("/backward", []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=-3.14*Speed; RightMotor_Speed=-3.14*Speed;});
-  server.on("/right"   , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= 3.14*Speed; RightMotor_Speed=-3.14*Speed;});
-  server.on("/left"    , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=-3.14*Speed; RightMotor_Speed= 3.14*Speed;});
+             <p>Move Robot:\n\
+             \t\t<a href=\"forward\" ><button>Forward </button></a></p>\n\
+             <p> <a href=\"left\"><button>Left</button></a>\t\t<a href=\"right\"><button>Right</button></a></p>\n\
+             <p>\t\t<a href=\"backward\"><button>Backward</button></a></p>\n\
+             <p>Speed:<span id=\"Speed\"></span></p>\
+             <input type=\"range\" min=\"0\" max=\"314\" class=\"slider\" id=\"servoSlider\"\
+             onchange=\"speedFun(this.value)\" value=\"" + String(Speed) + "\"/>\n\
+             <script>var slider = document.getElementById(\"speedSlider\");\
+             var speedP = document.getElementById(\"speedPos\"); speedP.innerHTML = slider.value;\
+             slider.oninput = function() { slider.value = this.value; speedP.innerHTML = this.value; }\
+             $.ajaxSetup({timeout:1000});\
+             function speedFun(pos) {$.get(\"/?value=\" + pos + \"&\"); {Connection: close};}</script>";
+
+  server.on("/"        , []() {server.send(200, "text/html", webpage);  /*LeftMotor_Speed=     0; RightMotor_Speed=       0;*/});
+  server.on("/forward" , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= Speed; RightMotor_Speed= Speed;});
+  server.on("/backward", []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=-Speed; RightMotor_Speed=-Speed;});
+  server.on("/right"   , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= Speed; RightMotor_Speed=-Speed;});
+  server.on("/left"    , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=-Speed; RightMotor_Speed= Speed;});
   server.on("/Speed"   , []() {server.send(200, "text/html", webpage);  Speed=server.arg(0).toInt();});
 
 }

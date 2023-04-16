@@ -43,8 +43,8 @@ void Encoders_Setup() {
 }
 // Calculate the Updated Encoder Position and Speed
 void Encoders_DataUpdate() {
-  RightEncoder_Distance = RightEncoder.getCount();
-  LeftEncoder_Distance  = LeftEncoder.getCount();
+  RightEncoder_Distance = -RightEncoder.getCount();
+  LeftEncoder_Distance  = -LeftEncoder.getCount();
   /* Speed Calcu.
   RightEncoder_degs = (RightEncoder_Distance - RightEncoder_PrevDistance) / (millis() - Prev_millis);
   LeftEncoder_degs  = ( LeftEncoder_Distance -  LeftEncoder_PrevDistance) / (millis() - Prev_millis);
