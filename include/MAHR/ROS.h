@@ -26,8 +26,8 @@ ros::Publisher LeftEncoder_pub("/LeftEncoder_deg", &LeftEnc);
 
   // Subscribers:
 void Motors(const geometry_msgs::Twist &cmd_msg) {
-  RightMotor_Speed = (int16_t) (cmd_msg.linear.x)*200 + (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0;
-  LeftMotor_Speed  = (int16_t) (cmd_msg.linear.x)*200 - (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0;
+  RightMotor_Speed = (int16_t) 314*( cmd_msg.linear.x + (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
+  LeftMotor_Speed  = (int16_t) 314*( cmd_msg.linear.x - (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
 }
 ros::Subscriber<geometry_msgs::Twist> Motors_sub("Motors_mms", Motors);
 
