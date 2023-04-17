@@ -50,7 +50,7 @@ void Mp3_PrintState(uint8_t type, uint16_t value) {
         default:                                                              break;
       }
       break;
-    default:                                                          break;
+    default: break;
   }
 }
 // Check if anything happen and read it
