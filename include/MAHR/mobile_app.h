@@ -120,13 +120,18 @@ void App_DataUpdate() {
             // Web Page
             client.println(F("</head><body><h1>MAHR Control WebSite</h1>"));
 
-            client.println(F("<p> Move Robot: </p>"));
-            client.println(F("<p><button onmousedown=\"forward()\" onmouseup=\"stop()\">Forward </button></p>"));
-            client.print(F(   "<a href=\"/left\"    ><button class=\"button\">  Left  </button></a></p>"));
-            client.println(F("<p><a href=\"/right\"   ><button class=\"button\"> Right  </button></a>"    ));
-            client.println(F("<p><a href=\"/backward\"><button class=\"button\">Backward</button></a></p>"));
+            client.println(F("<p> Move Robot </p>"));
+            client.println(F("<p><button onmousedown=\"forward()\"  onmouseup=\"stop()\"> Forward  </button></p>"));
+            client.print  (F("<p><button onmousedown=\"left()\"     onmouseup=\"stop()\">   Left   </button>\t\t"));
+            client.println(F("/t <button onmousedown=\"right()\"    onmouseup=\"stop()\">  Right   </button></p>"));
+            client.println(F("<p><button onmousedown=\"backward()\" onmouseup=\"stop()\"> Backward </button></p>"));
+            client.println(F("<script>function forward()  { $.get(\"/forward\" ); {Connection: close}; }"));
+            client.println(F(        "function left()     { $.get(\"/left\"    ); {Connection: close}; }"));
+            client.println(F(        "function right()    { $.get(\"/right\"   ); {Connection: close}; }"));
+            client.println(F(        "function backward() { $.get(\"/backward\"); {Connection: close}; }"));
+            client.println(F(        "function stop()     { $.get(\"/stop\"    ); {Connection: close}; }</script>"));
 
-            client.println(F("<p>Position: <span id=\"speedPos\"></span></p>"));
+            client.println(F("<p>Speed: <span id=\"speedPos\"></span></p>"));
             client.println(F("<input type=\"range\" min=\"0\" max=\"314\" class=\"slider\" id=\"speedSlider\" "));
             client.println("onchange=\"speedf(this.value)\" Speed=\""+SpeedString+"\"/>");
             client.println(F("<script>var slider = document.getElementById(\"speedSlider\");"));
@@ -135,6 +140,13 @@ void App_DataUpdate() {
             client.println(F("$.ajaxSetup({timeout:1000});"));
             client.println(F("function speedf(pos) { $.get(\"/Speed=\" + pos + \"&\"); {Connection: close}; }</script>"));
 
+            client.println(F("<p> Move Z-Axis Table </p>"));
+            client.println(F("<p><button onmousedown=\"zUp()\"   onmouseup=\"zStop()\">  UP  </button></p>"));
+            client.println(F("<p><button onmousedown=\"zDown()\" onmouseup=\"zStop()\"> Down </button></p>"));
+            client.println(F("<script>function zUp()   { $.get(\"/zUp\"  ); {Connection: close}; }"));
+            client.println(F(        "function zDown() { $.get(\"/zDown\"); {Connection: close}; }"));
+            client.println(F(        "function zStop() { $.get(\"/zStop\"); {Connection: close}; }</script>"));
+
             client.println(F("</body></html>"));     
             
             // Incoming Requests:
@@ -142,7 +154,11 @@ void App_DataUpdate() {
             else if (header.indexOf("GET /backward")>=0) { LeftMotor_Speed=-Speed; RightMotor_Speed=-Speed; }
             else if (header.indexOf("GET /left"    )>=0) { LeftMotor_Speed=-Speed; RightMotor_Speed= Speed; }
             else if (header.indexOf("GET /right"   )>=0) { LeftMotor_Speed= Speed; RightMotor_Speed=-Speed; }
-            else                                         { LeftMotor_Speed=     0; RightMotor_Speed=     0; }
+            else if (header.indexOf("GET /stop"    )>=0) { LeftMotor_Speed=     0; RightMotor_Speed=     0; }
+
+            if      (header.indexOf("GET /zUp"  )>=0) { zAxis_Speed =  1000; }
+            else if (header.indexOf("GET /zDown")>=0) { zAxis_Speed = -1000; }
+            else if (header.indexOf("GET /zStop")>=0) { zAxis_Speed =     0; }
 
             if(header.indexOf("GET /Speed=")>=0) { //GET /?value=180& HTTP/1.1
               Speed_Start = header.indexOf('=');
