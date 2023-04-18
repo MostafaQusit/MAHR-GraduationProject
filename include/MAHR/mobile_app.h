@@ -15,48 +15,12 @@ IPAddress local_IP(192, 168, 1, 184); // Set your Static  IP address
 IPAddress gateway(192, 168, 1, 1);    // Set your Gateway IP address
 IPAddress subnet(255, 255, 0, 0);
 
+// Speed Slider
 int Speed_Start = 0;
 int Speed_End = 0;
 String SpeedString;
 uint16_t Speed;
 
-/* Transaction (Send & Receive) Setup for App
-#include <WiFiClient.h>
-#include <WebServer.h>
-#include <ESPmDNS.h>
-
-MDNSResponder mdns;
-String webpage = "";
-
-void App_TransactionSetup() {
-  if (mdns.begin("esp")) {
-    Serial.println(F("MDNS responder started"));
-  }
-
-  webpage = "<h1>ESP32 Web Server</h1>\n\
-             <p>Move Robot:</p>\
-             <p>                     <a href=\"forward\" ><button>Forward </button></a></p>\
-             <p> <a href=\"left\"><button>Left</button></a>          <a href=\"right\"><button>Right</button></a></p>\
-             <p>                     <a href=\"backward\"><button>Backward</button></a></p>";
-
-  webpage += "<p>Speed:<span id=\"Speed\"></span></p>\
-              <input type=\"range\" min=\"0\" max=\"314\" class=\"slider\" id=\"speedSlider\"\
-              onchange=\"speedFun(this.value)\" value=\"" + SpeedString + "\"/>\
-              <script>var slider = document.getElementById(\"speedSlider\");\
-              var speedP = document.getElementById(\"speedPos\"); speedP.innerHTML = slider.value;\
-              slider.oninput = function() { slider.value = this.value; speedP.innerHTML = this.value; }\
-              $.ajaxSetup({timeout:1000});\
-              function speedFun(pos) {$.get(\"/Speed\" + pos + \"&\"); {Connection: close};}</script>";
-
-  server.on("/"        , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=     0; RightMotor_Speed=       0;});
-  server.on("/forward" , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= Speed; RightMotor_Speed= Speed;});
-  server.on("/backward", []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=-Speed; RightMotor_Speed=-Speed;});
-  server.on("/right"   , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed= Speed; RightMotor_Speed=-Speed;});
-  server.on("/left"    , []() {server.send(200, "text/html", webpage);  LeftMotor_Speed=-Speed; RightMotor_Speed= Speed;});
-  server.on("/Speed"   , []() {server.send(200, "text/html", webpage);  SpeedString=server.arg(0); Speed=SpeedString.toInt();});
-  //server.handleClient();
-}
-*/
 // App Initialization
 void App_Setup(const char* ssid, const char* password) {
   // Configures static IP address
