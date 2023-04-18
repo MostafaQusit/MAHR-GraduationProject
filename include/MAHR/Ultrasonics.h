@@ -22,7 +22,7 @@ void Ultrasonics_DataUpdate() {
 }
 // Print the Ultrasonics Distance every certain time
 void Ultrasonics_PrintData() {
-  Serial.printf("Ultrasonics: Distance(%4d,%4d,%4d,%4d)cm\n",
+  Serial.printf("Ultrasonics: Distance(%4u,%4u,%4u,%4u)cm\n",
                 ultrasonics[0], ultrasonics[1], ultrasonics[2], ultrasonics[3]);
 }
 

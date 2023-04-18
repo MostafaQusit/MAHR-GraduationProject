@@ -30,7 +30,7 @@ void setup() {
     //ROS_Setup(57600);
     //PS4_Setup();
     //App_Setup("WE_F6AE4C", "lcw04660");
-    App_Setup("Koset", "h9f16306");
+    //App_Setup("Koset", "h9f16306");
   #endif
 
   #ifdef ESP32_SLAVE1
@@ -45,15 +45,16 @@ void loop() {
     //IMU_DataUpdate();
     //Encoders_PrintData();
     //Encoders_DataUpdate();
-    App_DataUpdate();
+    //App_DataUpdate();
     //ROS_DataUpdate();
   #endif
 
   #ifdef ESP32_SLAVE1
     //Motors_SetSpeed(LeftMotor_Speed,RightMotor_Speed);   // true -> digitalRead(LOWER_LS)
-    Serial.printf("Motors: (%4d,%4d)\t\n", LeftMotor_Speed, RightMotor_Speed);
+    //Serial.printf("Motors: (%4d,%4d)\t\n", LeftMotor_Speed, RightMotor_Speed);
     //else { Motors_SetSpeed(0,0); }
     //zAxis_Move();
     //Mp3_StateUpdate();
   #endif
+
 }

@@ -84,8 +84,8 @@ void notify(){
 
   // PS4_PrintAll();
 }
-void onConnect()    {Serial.println("PS4 Controller is Connected.   ");}
-void onDisconnect() {Serial.println("PS4 Controller is Disconnected.");}
+void onConnect()    {Serial.println(F("PS4 Controller is Connected.   "));}
+void onDisconnect() {Serial.println(F("PS4 Controller is Disconnected."));}
 
 // PS4 Initialization
 void PS4_Setup() {
@@ -108,7 +108,7 @@ void PS4_DataUpdate() {
 }
 // Print all variables that PS4 Controller can update
 void PS4_PrintData() {
-  Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%3d,%3d)\troll(%3d)\twrist(%2d)\tGrip(%2d)\n",
+  Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%3d,%3d)\troll(%3u)\twrist(%2u)\tGrip(%2u)\n",
                 LeftMotor_Speed, RightMotor_Speed,
                 zAxis_Speed,
                 armX, armY,
