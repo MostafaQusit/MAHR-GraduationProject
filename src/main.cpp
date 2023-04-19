@@ -8,13 +8,13 @@
   //#include <MAHR/IMU.h>
   //#include <MAHR/ROS.h>
   //#include <MAHR/PS4_Controller.h>
-  #include <MAHR/mobile_app.h>
+  //#include <MAHR/mobile_app.h>
   //#include <MAHR/GSM.h>
 #endif
 
 #ifdef ESP32_SLAVE1
   //#include <MAHR/SPI/Slave1.h>
-  //#include <MAHR/Encoders.h>
+  #include <MAHR/Encoders.h>
   //#include <MAHR/Motors.h>
   //#include <MAHR/zAxis_Stepper.h>
   //#include <MAHR/MP3.h>
@@ -26,7 +26,7 @@ void setup() {
 
   #ifdef ESP32_MASTER
     //IMU_Setup();
-    //Encoders_Setup();
+    Encoders_Setup();
     //ROS_Setup(57600);
     //PS4_Setup();
     //App_Setup("WE_F6AE4C", "lcw04660");
@@ -43,8 +43,8 @@ void setup() {
 void loop() {
   #ifdef ESP32_MASTER
     //IMU_DataUpdate();
-    //Encoders_PrintData();
-    //Encoders_DataUpdate();
+    Encoders_DataUpdate();
+    Encoders_PrintData();
     //App_DataUpdate();
     //ROS_DataUpdate();
   #endif
