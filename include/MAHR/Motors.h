@@ -18,8 +18,7 @@ void Motors_Setup() {
 }
 // Speed Control Diff. Robot by PID Controller
 void Motors_SetSpeed(int16_t LeftMotor_mms, int16_t RightMotor_mms) {
-  if ( LeftMotor_mms  > 0) { LeftMotor_mms /= 1.25; }
-  if ( RightMotor_mms < 0) { RightMotor_mms /= 1.1; }
+  if ( LeftMotor_mms  > 0) { LeftMotor_mms  /= 1.25; }
   error_R = 1.0*(RightMotor_mms-RightEncoder_Speed);
   error_L = 1.0*(LeftMotor_mms-LeftEncoder_Speed);
 
