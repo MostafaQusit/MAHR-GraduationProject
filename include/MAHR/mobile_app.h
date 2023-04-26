@@ -87,7 +87,7 @@ void App_DataUpdate() {
             client.println(F("<p> Move Robot </p>"));
             client.println(F("<p><button onmousedown=\"forward()\"  onmouseup=\"stop()\"> Forward  </button></p>"));
             client.print  (F("<p><button onmousedown=\"left()\"     onmouseup=\"stop()\">   Left   </button>\t\t"));
-            client.println(F("/t <button onmousedown=\"right()\"    onmouseup=\"stop()\">  Right   </button></p>"));
+            client.println(F("\t <button onmousedown=\"right()\"    onmouseup=\"stop()\">  Right   </button></p>"));
             client.println(F("<p><button onmousedown=\"backward()\" onmouseup=\"stop()\"> Backward </button></p>"));
             client.println(F("<script>function forward()  { $.get(\"/forward\" ); {Connection: close}; }"));
             client.println(F(        "function left()     { $.get(\"/left\"    ); {Connection: close}; }"));
@@ -96,7 +96,7 @@ void App_DataUpdate() {
             client.println(F(        "function stop()     { $.get(\"/stop\"    ); {Connection: close}; }</script>"));
 
             client.println(F("<p>Speed: <span id=\"speedPos\"></span></p>"));
-            client.println(F("<input type=\"range\" min=\"0\" max=\"314\" class=\"slider\" id=\"speedSlider\" "));
+            client.println(F("<input type=\"range\" min=\"0\" max=\"300\" class=\"slider\" id=\"speedSlider\" "));
             client.println("onchange=\"speedf(this.value)\" Speed=\""+SpeedString+"\"/>");
             client.println(F("<script>var slider = document.getElementById(\"speedSlider\");"));
             client.println(F("var speedP = document.getElementById(\"speedPos\"); speedP.innerHTML = slider.value;"));

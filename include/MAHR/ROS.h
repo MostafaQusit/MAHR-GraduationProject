@@ -8,6 +8,7 @@
 #include <std_msgs/Int64.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Quaternion.h>
+#include <sensor_msgs/Imu.h>
 #include <geometry_msgs/Twist.h>
 
 ros::NodeHandle nh;
@@ -16,10 +17,12 @@ ros::NodeHandle nh;
 sensor_msgs::Range range[4];
 geometry_msgs::Vector3 target;
 geometry_msgs::Quaternion q;
+sensor_msgs::Imu Imu;
 std_msgs::Int64 RightEnc, LeftEnc;
 
 ros::Publisher range_pub("/ultrasonics_cm", range);
 ros::Publisher quat_pub("Quaternionfilter", &q);
+ros::Publisher imu_pub("imu", &Imu);
 ros::Publisher target_pub("/TargetPosition_cm", &target);
 ros::Publisher RightEncoder_pub("/RightEncoder_deg", &RightEnc);
 ros::Publisher LeftEncoder_pub("/LeftEncoder_deg", &LeftEnc);

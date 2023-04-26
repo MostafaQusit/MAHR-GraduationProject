@@ -28,7 +28,7 @@ void IMU_Setup() {
         delay(5000);
       }
   }
-  IMU.selectFilter(QuatFilterSel::MADGWICK);
+  IMU.selectFilter(QuatFilterSel::MAHONY);
   Serial.println(F("Done."));
 }
 // Update the IMU Reading
@@ -97,11 +97,7 @@ void IMU_Calibrate() {
 }
 // Print the IMU Readings every certain time
 void IMU_PrintData() {
-  Serial.printf("accel(%0.3f,%0.3f,%0.3f)\t\
-                 gyro(%0.3f,%0.3f,%0.3f)\t\
-                 mag(%0.3f,%0.3f,%0.3f)\t\
-                 Quat(%0.3f,%0.3f,%0.3f,%0.3f)\t\
-                 angles(%0.1f,%0.1f,%0.1f)\t",
+  Serial.printf("accel(%0.3f,%0.3f,%0.3f)\tgyro(%0.3f,%0.3f,%0.3f)\tmag(%0.3f,%0.3f,%0.3f)\tQuat(%0.3f,%0.3f,%0.3f,%0.3f)\tangles(%0.1f,%0.1f,%0.1f)\n",
                  accelerometer[0],
                  accelerometer[1], 
                  accelerometer[2], 

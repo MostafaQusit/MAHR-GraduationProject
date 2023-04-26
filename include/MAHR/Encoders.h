@@ -20,7 +20,7 @@ ESP32Encoder RightEncoder(true, RightEncoder_cb);             // ESP32Encoder ob
 ESP32Encoder LeftEncoder (true, LeftEncoder_cb );             // ESP32Encoder object for Left Encoder.
 int64_t RightEncoder_PrevDistance, LeftEncoder_PrevDistance;  // Previous travelled distance of Encoders in deg.
 float_t RightEncoder_degs, LeftEncoder_degs;                  // Enocoders Speed in deg/s.
-uint32_t Prev_millis;
+uint32_t Current_micros, Prev_micros;
 static const char *LOG_TAG = "main";
 
 // Encoders Initialization
@@ -45,18 +45,21 @@ void Encoders_Setup() {
 void Encoders_DataUpdate() {
   RightEncoder_Distance = -RightEncoder.getCount();
   LeftEncoder_Distance  = -LeftEncoder.getCount();
-  // Speed Calcu. 
-  RightEncoder_degs = (RightEncoder_Distance - RightEncoder_PrevDistance)*1000.0 / (millis() - Prev_millis);
-  LeftEncoder_degs  = ( LeftEncoder_Distance -  LeftEncoder_PrevDistance)*1000.0 / (millis() - Prev_millis);
+  // Speed Calcu.
+  Current_micros = micros();
+  RightEncoder_degs = (RightEncoder_Distance - RightEncoder_PrevDistance)*1.0E6 / (Current_micros - Prev_micros);
+  LeftEncoder_degs  = ( LeftEncoder_Distance -  LeftEncoder_PrevDistance)*1.0E6 / (Current_micros - Prev_micros);
 
   RightEncoder_Speed = (int16_t) (RightEncoder_degs * (PI/180.0)*WHEEL_RADIUS_MM);
   LeftEncoder_Speed  = (int16_t) (LeftEncoder_degs  * (PI/180.0)*WHEEL_RADIUS_MM);
 
-  Prev_millis = millis();
+  RightEncoder_PrevDistance = RightEncoder_Distance;
+  LeftEncoder_PrevDistance  = LeftEncoder_Distance;
+  Prev_micros = Current_micros;
 }
 // Print the Encoder Position and Speed
 void Encoders_PrintData() {
-  Serial.printf("Encoders: Position(%6lld,%6lld)deg\tSpeed(%6d,%6d)\n",
+  Serial.printf("Encoders: Position(%6lld,%6lld)deg\tSpeed(%6ld,%6ld)\n",
                 LeftEncoder_Distance,
                 RightEncoder_Distance, 
                 LeftEncoder_Speed, 

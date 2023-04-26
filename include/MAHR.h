@@ -5,7 +5,7 @@
 #include <MAHR/PinsList.h>
 
 #define WHEEL_BASE_MM   374.2
-#define WHEEL_RADIUS_MM  50.0
+#define WHEEL_RADIUS_MM  54.0
 
 int64_t RightEncoder_Distance, LeftEncoder_Distance;    // Encoders::Distance in degrees
 int16_t RightEncoder_Speed, LeftEncoder_Speed;          // Encoders::Speed in  mm/s
