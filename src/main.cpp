@@ -48,13 +48,7 @@ void loop() {
 
   #ifdef ESP32_SLAVE1
     Motors_RunSpeed(LeftMotor_Speed,RightMotor_Speed);   // true -> digitalRead(LOWER_LS)
-    /*
-    Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%4d,%4d)\troll(%4d)\twrist(%4d)\tGrip(%4d)\n",
-                  LeftMotor_Speed, RightMotor_Speed,
-                  zAxis_Speed,
-                  armX, armY,
-                  roll, wrist, Grip);
-    */
+    //Serial.printf("Speed(%4d,%4d)\t", LeftMotor_Speed, RightMotor_Speed);
     Encoders_PrintData();
     //else { Motors_SetSpeed(0,0); }
     //zAxis_Move();
