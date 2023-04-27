@@ -108,7 +108,7 @@ void PS4_DataUpdate() {
 }
 // Print all variables that PS4 Controller can update
 void PS4_PrintData() {
-  Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%3d,%3d)\troll(%3u)\twrist(%2u)\tGrip(%2u)\n",
+  Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%4d,%4d)\troll(%4d)\twrist(%4d)\tGrip(%4d)\n",
                 LeftMotor_Speed, RightMotor_Speed,
                 zAxis_Speed,
                 armX, armY,

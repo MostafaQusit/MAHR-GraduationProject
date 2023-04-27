@@ -14,7 +14,6 @@
 
 #ifdef ESP32_SLAVE1
   //#include <MAHR/SPI/Slave1.h>
-  #include <MAHR/Encoders.h>
   #include <MAHR/Motors.h>
   //#include <MAHR/zAxis_Stepper.h>
   //#include <MAHR/MP3.h>
@@ -26,7 +25,6 @@ void setup() {
 
   #ifdef ESP32_MASTER
     //IMU_Setup();
-    Encoders_Setup();
     //ROS_Setup(57600);
     //PS4_Setup();
     App_Setup("WE_F6AE4C", "lcw04660");
@@ -44,15 +42,20 @@ void loop() {
   #ifdef ESP32_MASTER
     //IMU_DataUpdate();
     //IMU_PrintData();
-    Encoders_DataUpdate();
-    Encoders_PrintData();
     App_DataUpdate();
     //ROS_DataUpdate();
   #endif
 
   #ifdef ESP32_SLAVE1
-    Motors_SetSpeed(LeftMotor_Speed,RightMotor_Speed);   // true -> digitalRead(LOWER_LS)
-    Serial.printf("Motors: (%4d,%4d)\t", LeftMotor_Speed, RightMotor_Speed);
+    Motors_RunSpeed(LeftMotor_Speed,RightMotor_Speed);   // true -> digitalRead(LOWER_LS)
+    /*
+    Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%4d,%4d)\troll(%4d)\twrist(%4d)\tGrip(%4d)\n",
+                  LeftMotor_Speed, RightMotor_Speed,
+                  zAxis_Speed,
+                  armX, armY,
+                  roll, wrist, Grip);
+    */
+    Encoders_PrintData();
     //else { Motors_SetSpeed(0,0); }
     //zAxis_Move();
     //Mp3_StateUpdate();

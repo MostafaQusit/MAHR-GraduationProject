@@ -114,15 +114,39 @@ void App_DataUpdate() {
             client.println(F("</body></html>"));     
             
             // Incoming Requests:
+            // Robot:
             if      (header.indexOf("GET /forward" )>=0) { LeftMotor_Speed= Speed; RightMotor_Speed= Speed; }
             else if (header.indexOf("GET /backward")>=0) { LeftMotor_Speed=-Speed; RightMotor_Speed=-Speed; }
             else if (header.indexOf("GET /left"    )>=0) { LeftMotor_Speed=-Speed; RightMotor_Speed= Speed; }
             else if (header.indexOf("GET /right"   )>=0) { LeftMotor_Speed= Speed; RightMotor_Speed=-Speed; }
             else if (header.indexOf("GET /stop"    )>=0) { LeftMotor_Speed=     0; RightMotor_Speed=     0; }
 
+            // Arm:
+            if      (header.indexOf("GET /forward" )>=0) { armX= 100; armY= 100; }
+            else if (header.indexOf("GET /backward")>=0) { armX=-100; armY=-100; }
+            else if (header.indexOf("GET /left"    )>=0) { armX=-100; armY= 100; }
+            else if (header.indexOf("GET /right"   )>=0) { armX= 100; armY=-100; }
+            else if (header.indexOf("GET /stop"    )>=0) { armX=   0; armY=   0; }
+
+            // Z-axis:
             if      (header.indexOf("GET /zUp"  )>=0) { zAxis_Speed =  1000; }
             else if (header.indexOf("GET /zDown")>=0) { zAxis_Speed = -1000; }
             else if (header.indexOf("GET /zStop")>=0) { zAxis_Speed =     0; }
+
+            // Wrist:
+            if      (header.indexOf("GET /zUp"  )>=0) { wrist =  100; }
+            else if (header.indexOf("GET /zDown")>=0) { wrist = -100; }
+            else if (header.indexOf("GET /zStop")>=0) { wrist =    0; }
+
+            // Roll:
+            if      (header.indexOf("GET /zUp"  )>=0) { roll =  100; }
+            else if (header.indexOf("GET /zDown")>=0) { roll = -100; }
+            else if (header.indexOf("GET /zStop")>=0) { roll =    0; }
+
+            // Grip:
+            if      (header.indexOf("GET /zUp"  )>=0) { Grip =  100; }
+            else if (header.indexOf("GET /zDown")>=0) { Grip = -100; }
+            else if (header.indexOf("GET /zStop")>=0) { Grip =    0; }
 
             if(header.indexOf("GET /Speed=")>=0) { //GET /?value=180& HTTP/1.1
               Speed_Start = header.indexOf('=');
