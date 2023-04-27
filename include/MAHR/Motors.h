@@ -5,10 +5,8 @@
 #include "esp_task_wdt.h"
 #include <MAHR.h>
 #include <CytronMotorDriver.h>
-//#include <PID_v1.h>
 
 #define ENCODER_PPR         360.0   // Encoder Resolution in pulse/rev.
-#define MOTOR_MAXSPEED_RPM   60.0   // Motor max. speed in rpm
 
 static IRAM_ATTR void RightEncoder_cb(void* arg) {
   ESP32Encoder* enc = (ESP32Encoder*) arg;
@@ -21,7 +19,10 @@ extern bool loopTaskWDTEnabled;
 extern TaskHandle_t loopTaskHandle;
 ESP32Encoder RightEncoder(true, RightEncoder_cb);             // ESP32Encoder object for Right Encoder.
 ESP32Encoder LeftEncoder (true, LeftEncoder_cb );             // ESP32Encoder object for Left Encoder.
-int64_t RightEncoder_PrevDistance, LeftEncoder_PrevDistance;  // Previous travelled distance of Encoders in deg.
+float_t RightEncoder_CurrDistance, LeftEncoder_CurrDistance;  // Previous travelled distance of Encoders in deg.
+float_t RightEncoder_PrevDistance, LeftEncoder_PrevDistance;  // Previous travelled distance of Encoders in deg.
+int64_t rEnc_distance[10];
+int64_t lEnc_distance[10];
 float_t RightEncoder_degs, LeftEncoder_degs;                  // Enocoders Speed in deg/s.
 float_t RightEncoder_mms,  LeftEncoder_mms;                   // Encoders::Speed in  mm/s
 uint32_t Enc_CurrMicros, Enc_PrevMicros;
@@ -106,8 +107,8 @@ class LowPass {
       return y[0];
     }
 };
-LowPass<2> lowpass_l(60e3, 600e3, true);
-LowPass<2> lowpass_r(60e3, 600e3, true);
+LowPass<2> lowpass_l(6e3, 120e3, true);
+LowPass<2> lowpass_r(6e3, 120e3, true);
 
 CytronMD motorR(PWM_DIR, MOTOR_RIGHT_PWM, MOTOR_RIGHT_DIR);   // Driver object for Right Motor
 CytronMD motorL(PWM_DIR, MOTOR_LEFT_PWM , MOTOR_LEFT_DIR );   // Driver object for Left Motor
@@ -137,6 +138,11 @@ void Motors_Setup() {
   esp_log_level_set("main", ESP_LOG_DEBUG);
   esp_log_level_set("ESP32Encoder", ESP_LOG_DEBUG);
   esp_task_wdt_add(loopTaskHandle);
+
+  for(uint8_t i=0; i<10; i++){
+    rEnc_distance[0] = 0;
+    lEnc_distance[0] = 0;
+  }
 }
 // Speed Control Diff. Robot by PID Controller
 void Motors_RunSpeed(int16_t LeftMotor_mms, int16_t RightMotor_mms) {
@@ -147,14 +153,28 @@ void Motors_RunSpeed(int16_t LeftMotor_mms, int16_t RightMotor_mms) {
   LeftEncoder_Distance  = -LeftEncoder.getCount();
   interrupts();
 
-  current_time = micros();
+  // Update Distances:
+  for(uint8_t i=0; i<9; i++){
+    rEnc_distance[i] = rEnc_distance[i+1];
+    lEnc_distance[i] = lEnc_distance[i+1];
+  }
+  rEnc_distance[9] = RightEncoder_Distance;
+  lEnc_distance[9] = LeftEncoder_Distance;
+
+  // Split the Data:
+  for(uint8_t i=0; i<5; i++){
+    RightEncoder_CurrDistance += ((float_t) rEnc_distance[i+5])/5.0;
+    LeftEncoder_CurrDistance  += ((float_t) lEnc_distance[i+5])/5.0;
+
+    RightEncoder_PrevDistance += ((float_t) rEnc_distance[i  ])/5.0;
+    LeftEncoder_PrevDistance  += ((float_t) lEnc_distance[i  ])/5.0;
+  }
+  
   // Speed Calcu. :
+  current_time = micros();
   dt = ((float_t)current_time-previous_time)/1.0e6;
-  RightEncoder_degs = ((float_t) RightEncoder_Distance - RightEncoder_PrevDistance)/dt;
-  LeftEncoder_degs  = ((float_t) LeftEncoder_Distance  -  LeftEncoder_PrevDistance)/dt;
-  // Update the variables for 
-  RightEncoder_PrevDistance = RightEncoder_Distance;
-  LeftEncoder_PrevDistance = LeftEncoder_Distance;
+  RightEncoder_degs = (RightEncoder_CurrDistance - RightEncoder_PrevDistance)/dt;
+  LeftEncoder_degs  = (LeftEncoder_CurrDistance  - LeftEncoder_PrevDistance )/dt;
   previous_time = current_time;
 
   // convert speed from deg/s to mm/s
@@ -179,8 +199,8 @@ void Motors_RunSpeed(int16_t LeftMotor_mms, int16_t RightMotor_mms) {
   PID_l = 1.00*P_l + 0.00*I_l + 0.00*D_l;
 
   // convert motor-speed from mm/s to RPM:
-  float_t RightMotor_RPM = (RightMotor_mms + error_r) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
-  float_t LeftMotor_RPM  = (LeftMotor_mms  + error_l) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
+  float_t RightMotor_RPM = (RightMotor_mms /*+ PID_r*/) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
+  float_t LeftMotor_RPM  = (LeftMotor_mms  /*+ PID_l*/) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
 
   // convert motor-speed from RPM to Volt:
   float_t RightMotor_Volt = RightMotor_RPM * 255.0/60.0;
@@ -191,12 +211,11 @@ void Motors_RunSpeed(int16_t LeftMotor_mms, int16_t RightMotor_mms) {
 }
 // Print the Encoder Position and Speed
 void Encoders_PrintData() {
-  Serial.printf("Encoders: Position(%6lld,%6lld)deg\tSpeed(%6ld,%6ld)mm/s\n",
+  Serial.printf("Encoders: Position(%6lld,%6lld)deg\tSpeed(%.1f,%.1f)mm/s\n",
                 LeftEncoder_Distance,
                 RightEncoder_Distance, 
-                LeftEncoder_mms, 
-                RightEncoder_mms );
-  
+                LeftEncoder_mms/6.0, 
+                RightEncoder_mms/6.0 );
 }
 
 #endif

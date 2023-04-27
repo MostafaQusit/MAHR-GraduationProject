@@ -62,6 +62,7 @@ void App_DataUpdate() {
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() == 0) {
+            /* page Setup:
             // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
             // and a content-type so the client knows what's coming, then a blank line:
             client.println(F("HTTP/1.1 200 OK"));
@@ -112,48 +113,54 @@ void App_DataUpdate() {
             client.println(F(        "function zStop() { $.get(\"/zStop\"); {Connection: close}; }</script>"));
 
             client.println(F("</body></html>"));     
-            
+            */
             // Incoming Requests:
             // Robot:
             if      (header.indexOf("GET /forward" )>=0) { LeftMotor_Speed= Speed; RightMotor_Speed= Speed; }
             else if (header.indexOf("GET /backward")>=0) { LeftMotor_Speed=-Speed; RightMotor_Speed=-Speed; }
             else if (header.indexOf("GET /left"    )>=0) { LeftMotor_Speed=-Speed; RightMotor_Speed= Speed; }
             else if (header.indexOf("GET /right"   )>=0) { LeftMotor_Speed= Speed; RightMotor_Speed=-Speed; }
+            else if (header.indexOf("GET /FR"      )>=0) { LeftMotor_Speed= Speed; RightMotor_Speed=0.5*Speed; }
+            else if (header.indexOf("GET /FL"      )>=0) { LeftMotor_Speed=0.5*Speed; RightMotor_Speed=Speed; }
+            else if (header.indexOf("GET /DR"      )>=0) { LeftMotor_Speed=-Speed; RightMotor_Speed=-0.5*Speed; }
+            else if (header.indexOf("GET /DL"      )>=0) { LeftMotor_Speed=-0.5*Speed; RightMotor_Speed=-Speed; }
             else if (header.indexOf("GET /stop"    )>=0) { LeftMotor_Speed=     0; RightMotor_Speed=     0; }
-
+            
             // Arm:
-            if      (header.indexOf("GET /forward" )>=0) { armX= 100; armY= 100; }
-            else if (header.indexOf("GET /backward")>=0) { armX=-100; armY=-100; }
-            else if (header.indexOf("GET /left"    )>=0) { armX=-100; armY= 100; }
-            else if (header.indexOf("GET /right"   )>=0) { armX= 100; armY=-100; }
-            else if (header.indexOf("GET /stop"    )>=0) { armX=   0; armY=   0; }
+            else if (header.indexOf("GET /AUp"   )>=0) { armX= 100; armY= 100; }
+            else if (header.indexOf("GET /Adown" )>=0) { armX=-100; armY=-100; }
+            else if (header.indexOf("GET /Aleft" )>=0) { armX=-100; armY= 100; }
+            else if (header.indexOf("GET /Aright")>=0) { armX= 100; armY=-100; }
+            else if (header.indexOf("GET /Astop" )>=0) { armX=   0; armY=   0; }
 
             // Z-axis:
-            if      (header.indexOf("GET /zUp"  )>=0) { zAxis_Speed =  1000; }
+            else if (header.indexOf("GET /zUp"  )>=0) { zAxis_Speed =  1000; }
             else if (header.indexOf("GET /zDown")>=0) { zAxis_Speed = -1000; }
             else if (header.indexOf("GET /zStop")>=0) { zAxis_Speed =     0; }
 
             // Wrist:
-            if      (header.indexOf("GET /zUp"  )>=0) { wrist =  100; }
-            else if (header.indexOf("GET /zDown")>=0) { wrist = -100; }
-            else if (header.indexOf("GET /zStop")>=0) { wrist =    0; }
+            else if (header.indexOf("GET /wristUp"  )>=0) { wrist =  100; }
+            else if (header.indexOf("GET /wristDown")>=0) { wrist = -100; }
+            else if (header.indexOf("GET /wStop"    )>=0) { wrist =    0; }
 
             // Roll:
-            if      (header.indexOf("GET /zUp"  )>=0) { roll =  100; }
-            else if (header.indexOf("GET /zDown")>=0) { roll = -100; }
-            else if (header.indexOf("GET /zStop")>=0) { roll =    0; }
+            else if (header.indexOf("GET /rollCW")>=0) { roll =  100; }
+            else if (header.indexOf("GET /rolCCW")>=0) { roll = -100; }
+            else if (header.indexOf("GET /rStop" )>=0) { roll =    0; }
 
             // Grip:
-            if      (header.indexOf("GET /zUp"  )>=0) { Grip =  100; }
-            else if (header.indexOf("GET /zDown")>=0) { Grip = -100; }
-            else if (header.indexOf("GET /zStop")>=0) { Grip =    0; }
+            else if (header.indexOf("GET /grip"  )>=0) { Grip =  100; }
+            else if (header.indexOf("GET /ungrip")>=0) { Grip = -100; }
+            else if (header.indexOf("GET /gStop" )>=0) { Grip =    0; }
 
-            if(header.indexOf("GET /Speed=")>=0) { //GET /?value=180& HTTP/1.1
+            // GET /?value=180& HTTP/1.1
+            if(header.indexOf("GET /Speed=")>=0) {
               Speed_Start = header.indexOf('=');
               Speed_End   = header.indexOf('&');
               SpeedString = header.substring(Speed_Start+1, Speed_End);
-              Speed = SpeedString.toInt();
+              Speed = map(SpeedString.toInt(), 0, 255, 0, 340);
             }
+            else { Serial.print(header); }
 
             client.println(); // The HTTP response ends with another blank line
             break;            // Break out of the while loop
