@@ -2,6 +2,8 @@
 #define MAHR_H_
 
 #include <Arduino.h>
+#include <iostream>
+using namespace std;
 #include <MAHR/PinsList.h>
 
 #define WHEEL_BASE_MM   374.2

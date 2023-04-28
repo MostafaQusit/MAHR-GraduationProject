@@ -28,7 +28,7 @@ void zAxis_GoTo(uint8_t zPosition=-1) {
   case 0: ls_pin = LOWER_LS;  break;
   }
   while( digitalRead(ls_pin) == 0 ) {
-    zAxis.setSpeed(1000*ls_pin);
+    zAxis.setSpeed(1000*zPosition);
     zAxis.run();
   }
   zAxis.stop();

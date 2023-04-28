@@ -6,10 +6,10 @@
 #ifdef ESP32_MASTER
   //#include <MAHR/SPI/Master.h>
   //#include <MAHR/IMU.h>
-  //#include <MAHR/ROS.h>
   //#include <MAHR/PS4_Controller.h>
   #include <MAHR/mobile_app.h>
   //#include <MAHR/GSM.h>
+  //#include <MAHR/ROS.h>
 #endif
 
 #ifdef ESP32_SLAVE1
@@ -24,14 +24,16 @@ void setup() {
   while(!Serial){}
 
   #ifdef ESP32_MASTER
+    //SPIMaster_Setup();
     //IMU_Setup();
-    //ROS_Setup(57600);
     //PS4_Setup();
-    App_Setup("WE_F6AE4C", "lcw04660");
-    //App_Setup("Koset", "h9f16306");
+    App_Setup("WE_F6AE4C", "lcw04660");   //("Koset", "h9f16306");
+    //GSM_Setup();
+    //ROS_Setup(57600);
   #endif
 
   #ifdef ESP32_SLAVE1
+    //SPISlave1_Setup();
     //zAxis_Setup(1000, 2000);
     Motors_Setup();
     //Mp3_Setup();
@@ -40,17 +42,20 @@ void setup() {
 
 void loop() {
   #ifdef ESP32_MASTER
+    //SPIMaster_DataUpdate();
     //IMU_DataUpdate();
     //IMU_PrintData();
     App_DataUpdate();
+    //GSM_CheckIncoming();
     //ROS_DataUpdate();
   #endif
 
   #ifdef ESP32_SLAVE1
-    Motors_RunSpeed(LeftMotor_Speed,RightMotor_Speed);   // true -> digitalRead(LOWER_LS)
-    //Serial.printf("Speed(%4d,%4d)\t", LeftMotor_Speed, RightMotor_Speed);
-    Encoders_PrintData();
+    //SPISlave1_DataUpdate();
+    Motors_RunSpeed(LeftMotor_Speed,RightMotor_Speed);   // if(digitalRead(LOWER_LS)==HIGH) {}
     //else { Motors_SetSpeed(0,0); }
+    Serial.printf("Speed(%4d,%4d),\t", LeftMotor_Speed, RightMotor_Speed);
+    Encoders_PrintData();
     //zAxis_Move();
     //Mp3_StateUpdate();
   #endif
