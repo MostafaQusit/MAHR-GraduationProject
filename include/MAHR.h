@@ -20,6 +20,6 @@ int16_t RightMotor_Speed, LeftMotor_Speed;              // Motors::Speed in mm/s
 uint16_t voice_file;                                    // MP3::file number
 int32_t targetX, targetY, PrevTargetX, PrevTargetY;     // ROS::Target Position
 int16_t zAxis_Speed;                                    // Z-Axis Stepper::Speed in pulse/s
-int16_t Grip, wrist, roll, armX, armY;         // Arm:: Position parameters
+int16_t Grip, wrist, roll, armX, armY;                  // Arm:: Position parameters
 
 #endif

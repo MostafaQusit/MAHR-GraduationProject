@@ -158,7 +158,7 @@ void App_DataUpdate() {
               Speed_Start = header.indexOf('=');
               Speed_End   = header.indexOf('&');
               SpeedString = header.substring(Speed_Start+1, Speed_End);
-              Speed = map(SpeedString.toInt(), 0, 255, 0, 340);
+              Speed = map(SpeedString.toInt(), 0, 100, 0, 390); // 387
             }
             else { Serial.print(header); }
 
