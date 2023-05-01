@@ -38,14 +38,10 @@ void SPISlave2_DataUpdate() {
   
   slave2.wait(spi_slave2_rx_buf, spi_slave2_tx_buf, BUFFER_SIZE_2);
 
-  while (slave.available()) {
-    RightMotor_Speed = 0;
-    LeftMotor_Speed = 0;
+  while (slave2.available()) {
     zAxis_Speed = 0;
     voice_file = 0;
     for(uint8_t i=0; i<2; i++){
-      RightMotor_Speed |= spi_slave2_rx_buf[i   ] << (8*i);
-      LeftMotor_Speed  |= spi_slave2_rx_buf[i+ 8] << (8*i);
       zAxis_Speed      |= spi_slave2_rx_buf[i+16] << (8*i);
       voice_file       |= spi_slave2_rx_buf[i+24] << (8*i);
     }

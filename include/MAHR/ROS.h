@@ -4,7 +4,6 @@
 #include <MAHR.h>
 #include <ros.h>
 #include <ros/time.h>
-#include <sensor_msgs/Range.h>
 #include <std_msgs/Int64.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Quaternion.h>
@@ -14,23 +13,21 @@
 ros::NodeHandle nh;
 
   // Publishers:
-sensor_msgs::Range range[4];
 geometry_msgs::Vector3 target;
 geometry_msgs::Quaternion q;
 sensor_msgs::Imu Imu;
 std_msgs::Int64 RightEnc, LeftEnc;
 
-ros::Publisher range_pub("/ultrasonics_cm", range);
-ros::Publisher quat_pub("Quaternionfilter", &q);
+ros::Publisher quat_pub("quaternion", &q);
 ros::Publisher imu_pub("imu", &Imu);
 ros::Publisher target_pub("/TargetPosition_cm", &target);
-ros::Publisher RightEncoder_pub("/RightEncoder_deg", &RightEnc);
-ros::Publisher LeftEncoder_pub("/LeftEncoder_deg", &LeftEnc);
+ros::Publisher RightEncoder_pub("/right_ticks", &RightEnc);
+ros::Publisher LeftEncoder_pub("/left_ticks", &LeftEnc);
 
   // Subscribers:
 void Motors(const geometry_msgs::Twist &cmd_msg) {
-  RightMotor_Speed = (int16_t) ( cmd_msg.linear.x + (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
-  LeftMotor_Speed  = (int16_t) ( cmd_msg.linear.x - (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
+  Target_RightMotor_mms = (int16_t) ( cmd_msg.linear.x + (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
+  Target_LeftMotor_mms  = (int16_t) ( cmd_msg.linear.x - (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
 }
 ros::Subscriber<geometry_msgs::Twist> Motors_sub("Motors_mms", Motors);
 
@@ -44,19 +41,6 @@ void ROS_Setup(int32_t BaudRate) {
 
   nh.advertise(RightEncoder_pub);
   nh.advertise(LeftEncoder_pub);
-
-  // ultrasonics
-  nh.advertise(range_pub);
-  for(uint8_t i=0; i<4; i++){
-    range[i].radiation_type = sensor_msgs::Range::ULTRASOUND;
-    range[i].field_of_view = 15; // 10:15 degree
-    range[i].min_range = 3;
-    range[i].max_range = 200;
-  }
-  range[0].header.frame_id = "/ultrasonic_fl";
-  range[1].header.frame_id = "/ultrasonic_nl";
-  range[2].header.frame_id = "/ultrasonic_nr";
-  range[3].header.frame_id = "/ultrasonic_fr";
   
   // DC-Motors:
   nh.subscribe(Motors_sub);
@@ -87,14 +71,6 @@ void ROS_DataUpdate() {
   else {
     zAxis_Speed = 1000;
   }
-
-  // ultrasonics
-  for (uint8_t i = 0; i < 4; i++) {
-    range[i].range = ultrasonics[i];
-    range[i].header.stamp = nh.now();
-    delay(50);
-  }
-  range_pub.publish(range);
 
   nh.spinOnce();
   delay(1);

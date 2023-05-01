@@ -36,10 +36,10 @@ void SPIMaster_Setup() {
 // Send to/receive from slaves
 void SPIMaster_DataUpdate() {
   for(uint8_t i=0; i<2; i++){
-    spi_master1_tx_buf[i   ] = RightMotor_Speed >> (8*i);
-    spi_master1_tx_buf[i+ 8] = LeftMotor_Speed  >> (8*i);
-    spi_master1_tx_buf[i+16] = zAxis_Speed      >> (8*i);
-    spi_master1_tx_buf[i+24] = voice_file       >> (8*i);
+    spi_master1_tx_buf[i   ] = Target_RightMotor_mms >> (8*i);
+    spi_master1_tx_buf[i+ 8] = Target_LeftMotor_mms  >> (8*i);
+    spi_master1_tx_buf[i+16] = zAxis_Speed           >> (8*i);
+    spi_master1_tx_buf[i+24] = voice_file            >> (8*i);
   }
 
   master1.transfer(spi_master1_tx_buf, spi_master1_rx_buf, BUFFER_SIZE_1);

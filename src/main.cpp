@@ -53,9 +53,9 @@ void loop() {
   #ifdef ESP32_SLAVE1
     //SPISlave1_DataUpdate();
     //else { Motors_SetSpeed(0,0); }
-    Serial.printf("Speed(%4d,%4d),\t", LeftMotor_Speed, RightMotor_Speed);
+    Serial.printf("Speed(%4d,%4d),\t", LeftMotor_mms, RightMotor_mms);
     Encoders_PrintData();
-    Motors_RunSpeed(LeftMotor_Speed,RightMotor_Speed);   // if(digitalRead(LOWER_LS)==HIGH) {}
+    Motors_RunSpeed();   // if(digitalRead(LOWER_LS)==HIGH) {}
     //zAxis_Move();
     //Mp3_StateUpdate();
   #endif
