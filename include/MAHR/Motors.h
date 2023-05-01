@@ -9,6 +9,7 @@
 #define ENCODER_PPR   360.0   // Encoder Resolution in pulse/rev.
 #define LINEAR    0
 #define ROTATINAL 1
+#define DIAGONAL  2
 
 static IRAM_ATTR void RightEncoder_cb(void* arg) {
   ESP32Encoder* enc = (ESP32Encoder*) arg;
@@ -22,8 +23,7 @@ extern TaskHandle_t loopTaskHandle;
 ESP32Encoder RightEncoder(true, RightEncoder_cb);             // ESP32Encoder object for Right Encoder.
 ESP32Encoder LeftEncoder (true, LeftEncoder_cb );             // ESP32Encoder object for Left Encoder.
 int64_t RightEncoder_CurrDistance, LeftEncoder_CurrDistance;      // Average Previous travelled distance of Encoders in deg.
-int64_t RightEncoder_OffsetDistance, LeftEncoder_OffsetDistance;  // Offest distance of Encoders in deg.
-float_t RightEncoder_mms,  LeftEncoder_mms;                   // Encoders::Speed in  mm/s
+double_t RightEncoder_OffsetDistance, LeftEncoder_OffsetDistance;  // Offest distance of Encoders in deg.
 int8_t PrevState, CurrState = LINEAR;
 static const char *LOG_TAG = "main";
 
@@ -113,7 +113,6 @@ LowPass<2> lowpass_r(6e3, 100e3, true);
 
 CytronMD motorR(PWM_DIR, MOTOR_RIGHT_PWM, MOTOR_RIGHT_DIR);   // Driver object for Right Motor
 CytronMD motorL(PWM_DIR, MOTOR_LEFT_PWM , MOTOR_LEFT_DIR );   // Driver object for Left Motor
-int16_t PrevTarget_LeftMotor_mms, PrevTarget_RightMotor_mms;
 float_t LeftMotor_mmss, RightMotor_mmss;
 float_t LeftMotor_mms, RightMotor_mms;
 
@@ -140,18 +139,18 @@ void Motors_Setup() {
 }
 // Speed Control Diff. Robot by Differential PID Controller
 void Motors_RunSpeed() {
-  // Acceleration & Speed Profile (Trapazoidal)
-  LeftMotor_mmss  = (Target_LeftMotor_mms -PrevTarget_LeftMotor_mms )/0.003;
-  RightMotor_mmss = (Target_RightMotor_mms-PrevTarget_RightMotor_mms)/0.003;
-
-  LeftMotor_mms  += LeftMotor_mmss;
-  RightMotor_mms += RightMotor_mmss;
-  
-  if(LeftMotor_mms==Target_LeftMotor_mms && RightMotor_mms==Target_RightMotor_mms){
-    PrevTarget_LeftMotor_mms  = Target_LeftMotor_mms;
-    PrevTarget_RightMotor_mms = Target_RightMotor_mms;
+  // Check z-Axis State:
+  if(1) {  //digitalRead(LOWER_LS)==HIGH
+    // Acceleration & Speed Profile (like exp.):
+    LeftMotor_mmss  = (Target_LeftMotor_mms -LeftMotor_mms )/50.0;
+    RightMotor_mmss = (Target_RightMotor_mms-RightMotor_mms)/50.0;
+    LeftMotor_mms  += LeftMotor_mmss;
+    RightMotor_mms += RightMotor_mmss;
   }
-
+  else {
+    LeftMotor_mms  = 0;
+    RightMotor_mms = 0;
+  }
 
   // Position Calcu. :
   noInterrupts();
@@ -159,10 +158,12 @@ void Motors_RunSpeed() {
   LeftEncoder_Distance  = -LeftEncoder.getCount();
   interrupts();
 
+  // Define State:
   int8_t sign;
-  if((RightMotor_mms>=0 && LeftMotor_mms>=0) || (RightMotor_mms<=0 && LeftMotor_mms<=0)) { CurrState = LINEAR;    sign =  1; }
-  else                                                                                   { CurrState = ROTATINAL; sign = -1; }
-  
+  if      (RightMotor_mms ==    LeftMotor_mms) { CurrState=LINEAR;    sign= 1; }
+  else if (RightMotor_mms == -1*LeftMotor_mms) { CurrState=ROTATINAL; sign=-1; }
+  else                                         { CurrState=DIAGONAL;  sign= 1; }
+
   // Encoder Resetting:
   if( CurrState != PrevState) {
     RightEncoder_OffsetDistance = RightEncoder_Distance;
@@ -172,19 +173,15 @@ void Motors_RunSpeed() {
   LeftEncoder_CurrDistance  = LeftEncoder_Distance  - LeftEncoder_OffsetDistance;
   
   // In 4 crossing-direction case: [in progressing]
-  int32_t side_offset = 0;
-  if     (abs(LeftMotor_mms) > abs(RightMotor_mms)) { side_offset = -abs(LeftMotor_mms-RightMotor_mms); }
-  else if(abs(LeftMotor_mms) < abs(RightMotor_mms)) { side_offset =  abs(LeftMotor_mms-RightMotor_mms); }
+  int16_t side_offset = LeftMotor_mms - RightMotor_mms;
 
   // calcu. error difference:
   int64_t diff;
-  if(CurrState == LINEAR) { diff = 9.0*(    RightEncoder_CurrDistance  -     LeftEncoder_CurrDistance  + side_offset); }
-  else                    { diff = 9.0*(abs(RightEncoder_CurrDistance) - abs(LeftEncoder_CurrDistance) + side_offset);}
-  Serial.print("\t");   Serial.print(diff);
-  Serial.print("\t");   Serial.println(CurrState);
-  
+  if(CurrState == ROTATINAL) { diff = 5.0*(RightEncoder_CurrDistance + LeftEncoder_CurrDistance); }
+  else                       { diff = 5.0*(RightEncoder_CurrDistance - LeftEncoder_CurrDistance + side_offset); }
+
   // convert motor-speed from mm/s to RPM:
-  float_t RightMotor_RPM = (RightMotor_mms - 0.5*diff*sign) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
+  float_t RightMotor_RPM = (RightMotor_mms - 0.5*diff     ) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
   float_t LeftMotor_RPM  = (LeftMotor_mms  + 0.5*diff*sign) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
 
   // convert motor-speed from RPM to Volt:
@@ -197,12 +194,12 @@ void Motors_RunSpeed() {
   PrevState = CurrState;
 }
 // Print the Encoder Position and Speed
-void Encoders_PrintData() {
-  Serial.printf("Encoders: Position(%8lld,%8lld)deg\tSpeed(%4.0f,%4.0f)mm/s",
+void Motors_PrintData() {
+  Serial.printf("Motors: Speed(%4.0f,%4.0f)\tEncoders: Position(%8lld,%8lld)deg\n",
+                LeftMotor_mms,
+                RightMotor_mms,
                 LeftEncoder_CurrDistance,
-                RightEncoder_CurrDistance, 
-                LeftEncoder_mms, 
-                RightEncoder_mms );
+                RightEncoder_CurrDistance);
 }
 
 #endif
