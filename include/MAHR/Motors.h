@@ -24,8 +24,10 @@ ESP32Encoder LeftEncoder (true, LeftEncoder_cb );             // ESP32Encoder ob
 int64_t RightEncoder_CurrDistance, LeftEncoder_CurrDistance;      // Average Previous travelled distance of Encoders in deg.
 int64_t RightEncoder_OffsetDistance, LeftEncoder_OffsetDistance;  // Offest distance of Encoders in deg.
 float_t RightEncoder_mms,  LeftEncoder_mms;                   // Encoders::Speed in  mm/s
+int8_t PrevState, CurrState = LINEAR;
 static const char *LOG_TAG = "main";
 
+/* Filter:
 template <int order> // order is 1 or 2
 class LowPass {
   private:
@@ -107,15 +109,13 @@ class LowPass {
 };
 LowPass<2> lowpass_l(6e3, 100e3, true);
 LowPass<2> lowpass_r(6e3, 100e3, true);
+*/
 
 CytronMD motorR(PWM_DIR, MOTOR_RIGHT_PWM, MOTOR_RIGHT_DIR);   // Driver object for Right Motor
 CytronMD motorL(PWM_DIR, MOTOR_LEFT_PWM , MOTOR_LEFT_DIR );   // Driver object for Left Motor
-float_t PrevError_l, error_l, P_l, I_l, D_l, PID_l;
-float_t PrevError_r, error_r, P_r, I_r, D_r, PID_r;
-int8_t PrevState, CurrState = LINEAR;
-
-uint32_t current_time, previous_time;
-float_t dt;
+int16_t PrevTarget_LeftMotor_mms, PrevTarget_RightMotor_mms;
+float_t LeftMotor_mmss, RightMotor_mmss;
+float_t LeftMotor_mms, RightMotor_mms;
 
 // Motors Initialization
 void Motors_Setup() {
@@ -137,15 +137,22 @@ void Motors_Setup() {
   esp_log_level_set("main", ESP_LOG_DEBUG);
   esp_log_level_set("ESP32Encoder", ESP_LOG_DEBUG);
   esp_task_wdt_add(loopTaskHandle);
-  /*
-  for(uint8_t i=0; i<SIZE; i++){
-    rEnc_distance[i] = 0;
-    lEnc_distance[i] = 0;
-  }
-  */
 }
 // Speed Control Diff. Robot by Differential PID Controller
-void Motors_RunSpeed(int64_t LeftMotor_mms, int64_t RightMotor_mms) {
+void Motors_RunSpeed() {
+  // Acceleration & Speed Profile (Trapazoidal)
+  LeftMotor_mmss  = (Target_LeftMotor_mms -PrevTarget_LeftMotor_mms )/0.003;
+  RightMotor_mmss = (Target_RightMotor_mms-PrevTarget_RightMotor_mms)/0.003;
+
+  LeftMotor_mms  += LeftMotor_mmss;
+  RightMotor_mms += RightMotor_mmss;
+  
+  if(LeftMotor_mms==Target_LeftMotor_mms && RightMotor_mms==Target_RightMotor_mms){
+    PrevTarget_LeftMotor_mms  = Target_LeftMotor_mms;
+    PrevTarget_RightMotor_mms = Target_RightMotor_mms;
+  }
+
+
   // Position Calcu. :
   noInterrupts();
   RightEncoder_Distance = -RightEncoder.getCount();
