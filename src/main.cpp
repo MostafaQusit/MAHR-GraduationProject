@@ -1,14 +1,14 @@
 #include <Arduino.h>
 #include <MAHR.h>
 #define ESP32_MASTER
-#define ESP32_SLAVE1
+//#define ESP32_SLAVE1
 
 #ifdef ESP32_MASTER
-  #include <MAHR/SPI/Master.h>
-  #include <MAHR/IMU.h>
+  //#include <MAHR/SPI/Master.h>
+  //#include <MAHR/IMU.h>
   #include <MAHR/mobile_app.h>
-  #include <MAHR/GSM.h>
-  #include <MAHR/ROS.h>
+  //#include <MAHR/GSM.h>
+  //#include <MAHR/ROS.h>
 #endif
 
 #ifdef ESP32_SLAVE1
@@ -23,16 +23,16 @@ void setup() {
   while(!Serial){}
 
   #ifdef ESP32_MASTER
-    SPIMaster_Setup();
-    IMU_Setup();
-    App_Setup("WE_F6AE4C", "lcw04660");   //("Koset", "h9f16306");
-    GSM_Setup();
-    ROS_Setup(57600);
+    //SPIMaster_Setup();
+    //IMU_Setup();
+    App_Setup("Koset", "h9f16306"); // ("WE_F6AE4C", "lcw04660");
+    //GSM_Setup();
+    //ROS_Setup(57600);
   #endif
 
   #ifdef ESP32_SLAVE1
     SPISlave1_Setup();
-    zAxis_Setup(1000, 2000);
+    //zAxis_Setup(1000, 2000);
     Motors_Setup();
     //Mp3_Setup();
   #endif
@@ -40,19 +40,35 @@ void setup() {
 
 void loop() {
   #ifdef ESP32_MASTER
-    SPIMaster_DataUpdate();
-    IMU_DataUpdate();
+    voice_file = 5;
+    //SPIMaster_DataUpdate();
+    //IMU_DataUpdate();
     //IMU_PrintData();
     App_DataUpdate();
-    GSM_CheckIncoming();
-    ROS_DataUpdate();
+    /* print data:
+    Serial.printf("Motors: Speed(%4d,%4d)\tEncoders: Position(%8lld,%8lld)deg\n",
+                  Target_LeftMotor_mms,
+                  Target_RightMotor_mms,
+                  LeftEncoder_Distance,
+                  RightEncoder_Distance);
+    */
+    //GSM_CheckIncoming();
+    //ROS_DataUpdate();
   #endif
 
   #ifdef ESP32_SLAVE1
     SPISlave1_DataUpdate();
-    Motors_PrintData();
-    Motors_RunSpeed();   
-    zAxis_Move();
+    LeftEncoder_Distance  = -8000;
+    RightEncoder_Distance =  2050;
+    Serial.printf("Motors: Speed(%4d,%4d)\tEncoders: Position(%8lld,%8lld)deg\n",
+                  Target_LeftMotor_mms,
+                  Target_RightMotor_mms,
+                  LeftEncoder_Distance,
+                  RightEncoder_Distance);
+    
+    //Motors_PrintData();
+    //Motors_RunSpeed();   
+    //zAxis_Move();
     //Mp3_StateUpdate();
   #endif
 

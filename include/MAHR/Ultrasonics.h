@@ -4,8 +4,15 @@
 #include <MAHR.h>
 #include <NewPing.h>
 
-#define MIN_DISTANCE   3 // Minimum distance (in cm) to ping.
-#define MAX_DISTANCE 200 // Maximum distance (in cm) to ping.
+#define MIN_DISTANCE      3 // Minimum distance (in cm) to ping.
+#define MAX_DISTANCE    200 // Maximum distance (in cm) to ping.
+#define STEER_DISTANCE  50.0
+#define BREAK_DISTANCE  20.0
+#define K_DIST_TO_STEER 1.0
+#define L   0
+#define CL  1
+#define CR  2
+#define R   3
 
 NewPing Ping[4] = { // Sensor object array.
     NewPing(USTX_FL, USRX_FL, MAX_DISTANCE),
@@ -25,5 +32,37 @@ void Ultrasonics_PrintData() {
   Serial.printf("Ultrasonics: Distance(%4u,%4u,%4u,%4u)cm\n",
                 ultrasonics[0], ultrasonics[1], ultrasonics[2], ultrasonics[3]);
 }
+// Overwrite on Speed values to avoid any odstacle
+void Ultrasonics_ObstacleAvoid(){
+    if(Target_LeftMotor_mms>=0 && Target_RightMotor_mms>=0){
+        float_t break_action = 1.0;
+        float_t steer_action = 0.0;
+            
+        // Get the minimum distance
+        float_t range = ultrasonics[0];
+        for(uint8_t posi=1; posi<4; posi++){
+            if(range > ultrasonics[posi]){
+                range = ultrasonics[posi];
+            }
+        }
 
+        if(min(ultrasonics[CL],ultrasonics[CR]) < STEER_DISTANCE){
+            if(range < BREAK_DISTANCE){
+                break_action = range/BREAK_DISTANCE;
+                break_action = constrain(break_action, 0.0, 1.0);
+            }
+            steer_action = K_DIST_TO_STEER*(1.0 - range/STEER_DISTANCE);
+            if(ultrasonics[L] > ultrasonics[R]){
+                steer_action = -steer_action;
+            }
+            steer_action = 0; //constrain(steer_action, -1.5, 1.5);
+        }
+
+        Target_LeftMotor_mms  = (Target_LeftMotor_mms  + 0.5*steer_action)*break_action;
+        Target_RightMotor_mms = (Target_RightMotor_mms - 0.5*steer_action)*break_action;
+
+        Target_LeftMotor_mms  = constrain(Target_LeftMotor_mms , -390, 390);
+        Target_RightMotor_mms = constrain(Target_RightMotor_mms, -390, 390);
+    }
+}
 #endif

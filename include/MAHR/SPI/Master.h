@@ -11,7 +11,7 @@ uint8_t *spi_master1_rx_buf;
 
 // SPI Master Initialization
 void SPIMaster_Setup() {
-  Serial.println(F("SPI MASTER initializing..."));
+  Serial.print(F("SPI MASTER initializing..."));
   
   // to use DMA buffer, use these methods to allocate buffer
   spi_master1_tx_buf = master1.allocDMABuffer(BUFFER_SIZE_1);
@@ -22,7 +22,7 @@ void SPIMaster_Setup() {
     spi_master1_tx_buf[i] = i & 0xFF;
   }
   memset(spi_master1_rx_buf, 0, BUFFER_SIZE_1);
-  delay(2000);
+  delay(1000);
 
   master1.setDataMode(SPI_MODE0);            // default: SPI_MODE0
   master1.setFrequency(4000000);             // default: 8MHz (too fast for bread board...)
@@ -31,7 +31,7 @@ void SPIMaster_Setup() {
   master1.begin(VSPI, SPI_SCK, SPI_MISO, SPI_MOSI, SPI_SS1);
   pinMode(SPI_SS1, OUTPUT);
 
-  Serial.println(F("SPI Done"));
+  Serial.println(F("\tDone"));
 }
 // Send to/receive from slaves
 void SPIMaster_DataUpdate() {
@@ -47,8 +47,8 @@ void SPIMaster_DataUpdate() {
   RightEncoder_Distance = 0;
   LeftEncoder_Distance  = 0;
   for(uint8_t i=0; i<8; i++){
-    RightEncoder_Distance |= spi_master1_rx_buf[i+ 8] << (8*i);
-    LeftEncoder_Distance  |= spi_master1_rx_buf[i+16] << (8*i);
+    RightEncoder_Distance |= (int64_t)spi_master1_rx_buf[i+ 8] << (8*i);
+    LeftEncoder_Distance  |= (int64_t)spi_master1_rx_buf[i+16] << (8*i);
   }
 }
 

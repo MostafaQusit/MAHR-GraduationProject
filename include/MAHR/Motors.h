@@ -140,7 +140,7 @@ void Motors_Setup() {
 // Speed Control Diff. Robot by Differential PID Controller
 void Motors_RunSpeed() {
   // Check z-Axis State:
-  if(1) {  //digitalRead(LOWER_LS)==HIGH
+  if(digitalRead(LOWER_LS)==HIGH) {
     // Acceleration & Speed Profile (like exp.):
     LeftMotor_mmss  = (Target_LeftMotor_mms -LeftMotor_mms )/50.0;
     RightMotor_mmss = (Target_RightMotor_mms-RightMotor_mms)/50.0;
@@ -195,11 +195,11 @@ void Motors_RunSpeed() {
 }
 // Print the Encoder Position and Speed
 void Motors_PrintData() {
-  Serial.printf("Motors: Speed(%4.0f,%4.0f)\tEncoders: Position(%8lld,%8lld)deg\n",
-                LeftMotor_mms,
-                RightMotor_mms,
-                LeftEncoder_CurrDistance,
-                RightEncoder_CurrDistance);
+  Serial.printf("Motors: Speed(%4d,%4d)\tEncoders: Position(%8lld,%8lld)deg\n",
+                Target_LeftMotor_mms,
+                Target_RightMotor_mms,
+                LeftEncoder_Distance,
+                RightEncoder_Distance);
 }
 
 #endif

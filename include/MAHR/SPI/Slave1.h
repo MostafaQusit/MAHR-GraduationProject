@@ -20,7 +20,6 @@ void SPISlave1_Setup() {
     spi_slave1_tx_buf[i] = (0xFF - i) & 0xFF;
   }
   memset(spi_slave1_rx_buf, 0, BUFFER_SIZE_1);
-  delay(2000);
 
   // slave device configuration
   slave1.setDataMode(SPI_MODE0);
@@ -28,6 +27,7 @@ void SPISlave1_Setup() {
 
   slave1.begin(VSPI);
   pinMode(SPI_SS, INPUT);
+  delay(1000);
 }
 // Send to/receive from the Master
 void SPISlave1_DataUpdate() {
@@ -35,7 +35,7 @@ void SPISlave1_DataUpdate() {
     spi_slave1_tx_buf[i+ 8] = RightEncoder_Distance >> (8*i);
     spi_slave1_tx_buf[i+16] = LeftEncoder_Distance  >> (8*i);
   }
-  
+
   slave1.wait(spi_slave1_rx_buf, spi_slave1_tx_buf, BUFFER_SIZE_1);
 
   while (slave1.available()) {
@@ -44,10 +44,10 @@ void SPISlave1_DataUpdate() {
     zAxis_Speed           = 0;
     voice_file            = 0;
     for(uint8_t i=0; i<2; i++){
-      Target_RightMotor_mms |= spi_slave1_rx_buf[i   ] << (8*i);
-      Target_LeftMotor_mms  |= spi_slave1_rx_buf[i+ 8] << (8*i);
-      zAxis_Speed           |= spi_slave1_rx_buf[i+16] << (8*i);
-      voice_file            |= spi_slave1_rx_buf[i+24] << (8*i);
+      Target_RightMotor_mms |= ( int16_t)spi_slave1_rx_buf[i   ] << (8*i);
+      Target_LeftMotor_mms  |= ( int16_t)spi_slave1_rx_buf[i+ 8] << (8*i);
+      zAxis_Speed           |= ( int16_t)spi_slave1_rx_buf[i+16] << (8*i);
+      voice_file            |= (uint16_t)spi_slave1_rx_buf[i+24] << (8*i);
     }
     slave1.pop();
   }

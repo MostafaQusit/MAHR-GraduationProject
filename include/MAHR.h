@@ -19,7 +19,8 @@ uint32_t ultrasonics[4];                                // Ultrasonics::Distance
 int16_t Target_RightMotor_mms, Target_LeftMotor_mms;    // Motors::Speed in mm/s
 
 uint16_t voice_file;                                    // MP3::file number
-int32_t targetX, targetY, PrevTargetX, PrevTargetY;     // ROS::Target Position
+int32_t Target_PositionX, Target_PositionY;             // ROS::Target Position
+int32_t Current_PositionX, Current_PositionY;           // ROS::Current Position
 int16_t zAxis_Speed;                                    // Z-Axis Stepper::Speed in pulse/s
 int16_t Grip, wrist, roll, armX, armY;                  // Arm:: Position parameters
 
