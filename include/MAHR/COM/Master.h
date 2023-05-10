@@ -271,8 +271,13 @@ void Master_Setup(const char* ssid, const char* password) {
   Serial.println(F("\tDone"));
 }
 // Send to/receive from slaves
-void master1_dataUpdate() {
+void Master_dataUpdate() {
   App_DataUpdate();
+
+  master1_data.LeftSpeed  = Target_LeftMotor_mms;
+  master1_data.RightSpeed = Target_RightMotor_mms;
+  master1_data.zSpeed     = zAxis_Speed;
+  master1_data.vFile      = voice_file;
   ESPNOW_Send(Slave1_Address, (const uint8_t *) &master1_data, sizeof(master1_data));
 }
 

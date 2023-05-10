@@ -85,6 +85,8 @@ void Slave1_Setup() {
 }
 // Send to/receive from the Master
 void Slave1_DataUpdate() {
+  slave1_data.LeftPosition  = (int64_t) millis();
+  slave1_data.RightPosition = -50000;
   ESPNOW_Send(Master_Address, (const uint8_t *) &slave1_data, sizeof(slave1_data));
 }
 
