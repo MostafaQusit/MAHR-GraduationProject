@@ -9,7 +9,7 @@
 #define TRAVEL_DISTANCE_CM   25.0   // Distance between the Top and Bottom.
 
 AccelStepper zAxis(1, STEPPER_STP, STEPPER_DIR);
-
+LowPass<2> lp_Z(1e3, 100e3, true);
 // Z-Axis Initialization
 void zAxis_Setup(uint16_t MaxSpeed_pps, uint16_t Acceleration_ppss) {
   zAxis.setMaxSpeed(MaxSpeed_pps);
@@ -41,10 +41,11 @@ void zAxis_Homing() {
 }
 // free move according to control speed (magnitude & direction)
 void zAxis_Move() {
-  if     ( digitalRead(LOWER_LS) && zAxis_Speed < 0 ) { zAxis.stop(); }
-  else if( digitalRead(UPPER_LS) && zAxis_Speed > 0 ) { zAxis.stop(); }
+  int16_t zAxis_Speed_filtered = lp_Z.filt(zAxis_Speed);
+  if     ( digitalRead(LOWER_LS) && zAxis_Speed_filtered < 0 ) { zAxis.stop(); }
+  else if( digitalRead(UPPER_LS) && zAxis_Speed_filtered > 0 ) { zAxis.stop(); }
   else{
-    zAxis.setSpeed((float)zAxis_Speed);
+    zAxis.setSpeed((float)zAxis_Speed_filtered);
     zAxis.runSpeed();
   }
 }

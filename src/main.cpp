@@ -4,7 +4,7 @@
 //#define ESP32_SLAVE1
 
 #ifdef ESP32_MASTER
-  //#include <MAHR/SPI/Master.h>
+  #include <MAHR/SPI/Master.h>
   //#include <MAHR/IMU.h>
   #include <MAHR/mobile_app.h>
   //#include <MAHR/GSM.h>
@@ -23,16 +23,16 @@ void setup() {
   while(!Serial){}
 
   #ifdef ESP32_MASTER
-    //SPIMaster_Setup();
+    SPIMaster_Setup();
     //IMU_Setup();
-    App_Setup("Koset", "h9f16306"); // ("WE_F6AE4C", "lcw04660");
+    App_Setup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
     //GSM_Setup();
     //ROS_Setup(57600);
   #endif
 
   #ifdef ESP32_SLAVE1
     SPISlave1_Setup();
-    //zAxis_Setup(1000, 2000);
+    zAxis_Setup(1000, 2000);
     Motors_Setup();
     //Mp3_Setup();
   #endif
@@ -41,34 +41,27 @@ void setup() {
 void loop() {
   #ifdef ESP32_MASTER
     voice_file = 5;
-    //SPIMaster_DataUpdate();
+    SPIMaster_DataUpdate();
     //IMU_DataUpdate();
     //IMU_PrintData();
     App_DataUpdate();
-    /* print data:
+    // print data:
     Serial.printf("Motors: Speed(%4d,%4d)\tEncoders: Position(%8lld,%8lld)deg\n",
                   Target_LeftMotor_mms,
                   Target_RightMotor_mms,
-                  LeftEncoder_Distance,
-                  RightEncoder_Distance);
-    */
+                  LeftEncoder_Distance_filtered,
+                  RightEncoder_Distance_filtered);
+    
     //GSM_CheckIncoming();
     //ROS_DataUpdate();
   #endif
 
   #ifdef ESP32_SLAVE1
     SPISlave1_DataUpdate();
-    LeftEncoder_Distance  = -8000;
-    RightEncoder_Distance =  2050;
-    Serial.printf("Motors: Speed(%4d,%4d)\tEncoders: Position(%8lld,%8lld)deg\n",
-                  Target_LeftMotor_mms,
-                  Target_RightMotor_mms,
-                  LeftEncoder_Distance,
-                  RightEncoder_Distance);
-    
-    //Motors_PrintData();
-    //Motors_RunSpeed();   
-    //zAxis_Move();
+    Serial.print(zAxis_Speed);  Serial.print("\t");
+    Motors_PrintData();
+    Motors_RunSpeed();   
+    zAxis_Move();
     //Mp3_StateUpdate();
   #endif
 

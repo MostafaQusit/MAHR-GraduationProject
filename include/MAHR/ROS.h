@@ -48,8 +48,8 @@ void ROS_DataUpdate() {
   quat_pub.publish(&q);
   
   // Encoders:
-  RightEnc.data = RightEncoder_Distance;    RightEncoder_pub.publish(&RightEnc);
-  LeftEnc.data  = LeftEncoder_Distance;     LeftEncoder_pub.publish(&LeftEnc);
+  RightEnc.data = RightEncoder_Distance_filtered;    RightEncoder_pub.publish(&RightEnc);
+  LeftEnc.data  = LeftEncoder_Distance_filtered;     LeftEncoder_pub.publish(&LeftEnc);    
 
   nh.spinOnce();
   delay(1);

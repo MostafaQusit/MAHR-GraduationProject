@@ -49,6 +49,8 @@ void SPISlave1_DataUpdate() {
       zAxis_Speed           |= ( int16_t)spi_slave1_rx_buf[i+16] << (8*i);
       voice_file            |= (uint16_t)spi_slave1_rx_buf[i+24] << (8*i);
     }
+    if(abs(Target_RightMotor_mms) > 390) { Target_RightMotor_mms = 0; }
+    if(abs(Target_LeftMotor_mms ) > 390) { Target_LeftMotor_mms  = 0; }
     slave1.pop();
   }
 }

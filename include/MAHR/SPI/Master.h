@@ -9,6 +9,9 @@ static const uint32_t BUFFER_SIZE_1 = 32;
 uint8_t *spi_master1_tx_buf;
 uint8_t *spi_master1_rx_buf;
 
+LowPass<2> lp_er(20, 100e3, false);
+LowPass<2> lp_el(10, 100e3, false);
+
 // SPI Master Initialization
 void SPIMaster_Setup() {
   Serial.print(F("SPI MASTER initializing..."));
@@ -50,6 +53,8 @@ void SPIMaster_DataUpdate() {
     RightEncoder_Distance |= (int64_t)spi_master1_rx_buf[i+ 8] << (8*i);
     LeftEncoder_Distance  |= (int64_t)spi_master1_rx_buf[i+16] << (8*i);
   }
+  RightEncoder_Distance_filtered = (int64_t) lp_er.filt(RightEncoder_Distance);
+  LeftEncoder_Distance_filtered  = (int64_t) lp_el.filt(LeftEncoder_Distance);
 }
 
 #endif
