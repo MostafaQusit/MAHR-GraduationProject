@@ -41,17 +41,17 @@ void PS4_PrintAll() {
 }
 // make action for any required event in the PS4 Controller
 void notify(){
-  if     ( PS4.Up()    ) { LeftMotor_Speed= linearSpeed; RightMotor_Speed= linearSpeed; }
-  else if( PS4.Down()  ) { LeftMotor_Speed=-linearSpeed; RightMotor_Speed=-linearSpeed; }
-  else if( PS4.Right() ) { LeftMotor_Speed= rotatiSpeed; RightMotor_Speed=-rotatiSpeed; }
-  else if( PS4.Left()  ) { LeftMotor_Speed=-rotatiSpeed; RightMotor_Speed= rotatiSpeed; }
-  else                   { LeftMotor_Speed=           0; RightMotor_Speed=           0; }
+  if     ( PS4.Up()    ) { Target_LeftMotor_mms= linearSpeed; Target_RightMotor_mms= linearSpeed; }
+  else if( PS4.Down()  ) { Target_LeftMotor_mms=-linearSpeed; Target_RightMotor_mms=-linearSpeed; }
+  else if( PS4.Right() ) { Target_LeftMotor_mms= rotatiSpeed; Target_RightMotor_mms=-rotatiSpeed; }
+  else if( PS4.Left()  ) { Target_LeftMotor_mms=-rotatiSpeed; Target_RightMotor_mms= rotatiSpeed; }
+  else                   { Target_LeftMotor_mms=           0; Target_RightMotor_mms=           0; }
   /* control robot by analog
   lsx = PS4.LStickX();
   lsy = PS4.LStickY();
   if( abs(lsx) < 17 && abs(lsy) < 17 ) {
-    LeftMotor_Speed = 0;
-    RightMotor_Speed = 0;
+    Target_LeftMotor_mms = 0;
+    Target_RightMotor_mms = 0;
   }
   else {
     if(lsy>=0) { amp = (uint16_t)  sqrtf(lsx*lsx+lsy*lsy); }
@@ -61,8 +61,8 @@ void notify(){
     amp   = map(amp,   -128, 128, -100, 100);
     other = map(other, -128, 128, -100, 100);
 
-    if(lsx >= 0) { LeftMotor_Speed=amp;   RightMotor_Speed=other; }
-    else         { LeftMotor_Speed=other; RightMotor_Speed=amp;   }
+    if(lsx >= 0) { Target_LeftMotor_mms=amp;   Target_RightMotor_mms=other; }
+    else         { Target_LeftMotor_mms=other; Target_RightMotor_mms=amp;   }
   }
   */
   
@@ -109,7 +109,7 @@ void PS4_DataUpdate() {
 // Print all variables that PS4 Controller can update
 void PS4_PrintData() {
   Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%4d,%4d)\troll(%4d)\twrist(%4d)\tGrip(%4d)\n",
-                LeftMotor_Speed, RightMotor_Speed,
+                Target_LeftMotor_mms, Target_RightMotor_mms,
                 zAxis_Speed,
                 armX, armY,
                 roll, wrist, Grip);

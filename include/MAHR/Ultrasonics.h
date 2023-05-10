@@ -36,7 +36,6 @@ void Ultrasonics_PrintData() {
 void Ultrasonics_ObstacleAvoid(){
     if(Target_LeftMotor_mms>=0 && Target_RightMotor_mms>=0){
         float_t break_action = 1.0;
-        float_t steer_action = 0.0;
             
         // Get the minimum distance
         float_t range = ultrasonics[0];
@@ -46,23 +45,13 @@ void Ultrasonics_ObstacleAvoid(){
             }
         }
 
-        if(min(ultrasonics[CL],ultrasonics[CR]) < STEER_DISTANCE){
-            if(range < BREAK_DISTANCE){
-                break_action = range/BREAK_DISTANCE;
-                break_action = constrain(break_action, 0.0, 1.0);
-            }
-            steer_action = K_DIST_TO_STEER*(1.0 - range/STEER_DISTANCE);
-            if(ultrasonics[L] > ultrasonics[R]){
-                steer_action = -steer_action;
-            }
-            steer_action = 0; //constrain(steer_action, -1.5, 1.5);
+        if(range < BREAK_DISTANCE){
+            break_action = range/BREAK_DISTANCE;
+            break_action = constrain(break_action, 0.0, 1.0);
         }
 
-        Target_LeftMotor_mms  = (Target_LeftMotor_mms  + 0.5*steer_action)*break_action;
-        Target_RightMotor_mms = (Target_RightMotor_mms - 0.5*steer_action)*break_action;
-
-        Target_LeftMotor_mms  = constrain(Target_LeftMotor_mms , -390, 390);
-        Target_RightMotor_mms = constrain(Target_RightMotor_mms, -390, 390);
+        Target_LeftMotor_mms  *= break_action;
+        Target_RightMotor_mms *= break_action;
     }
 }
 #endif

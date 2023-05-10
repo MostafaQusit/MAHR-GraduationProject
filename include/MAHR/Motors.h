@@ -38,10 +38,8 @@ double_t RightEncoder_OffsetDistance, LeftEncoder_OffsetDistance;  // Offest dis
 static const char *LOG_TAG = "main";
 
 // Filter:
-LowPass<2> lp_sr(1e3, 100e3, false);
-LowPass<2> lp_sl(1e3, 100e3, false);
-LowPass<2> lp_tr(1e3, 100e3, false);
-LowPass<2> lp_tl(1e3, 100e3, false);
+LowPass<2> lp_sr(50, 100e3, false);
+LowPass<2> lp_sl(50, 100e3, false);
 
 CytronMD motorR(PWM_DIR, MOTOR_RIGHT_PWM, MOTOR_RIGHT_DIR);   // Driver object for Right Motor
 CytronMD motorL(PWM_DIR, MOTOR_LEFT_PWM , MOTOR_LEFT_DIR );   // Driver object for Left Motor
@@ -71,9 +69,6 @@ void Motors_Setup() {
 }
 // Speed Control Diff. Robot by Differential PID Controller
 void Motors_RunSpeed() {
-  //Target_LeftMotor_mms  = lp_tl.filt(Target_LeftMotor_mms);
-  //Target_RightMotor_mms = lp_tl.filt(Target_RightMotor_mms);
-
   // Check z-Axis State:
   if(true) {  // digitalRead(LOWER_LS)==HIGH
     // Acceleration & Speed Profile (like exp.):

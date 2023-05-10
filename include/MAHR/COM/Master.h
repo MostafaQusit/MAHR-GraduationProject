@@ -2,21 +2,7 @@
 #define MAHR_COM_MASTER_H_
 
 #include <MAHR.h>
-#include <esp_now.h>
-#include <esp_wifi.h>
-#include <WiFi.h>
-
-typedef struct master1_messages {
-  int16_t RightSpeed;
-  int16_t LeftSpeed;
-  int16_t zSpeed;
-  int16_t vFile;
-} master1_msgs;
-
-typedef struct slave1_messages {
-  int64_t RightPosition;
-  int64_t LeftPosition;
-} slave1_msgs;
+#include <MAHR/COM.h>
 
 master1_msgs master1_data;
 slave1_msgs slave1_data;
@@ -33,9 +19,9 @@ unsigned long previousTime = 0;       // Previous time
 const long timeoutTime = 100;        // Define timeout time in milliseconds (example: 2000ms = 2s)
 
 // MAC Addresses of the receivers
-uint8_t Slave1_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t Slave2_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-int32_t channel = 6;
+uint8_t Slave1_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xEA, 0xF0};
+uint8_t Slave2_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8};
+int32_t master_channel;
 
 // Speed Slider
 int Speed_Start = 0;
@@ -43,42 +29,27 @@ int Speed_End = 0;
 String SpeedString;
 uint16_t Speed;
 
-void getWiFiChannel(const char *ssid) {
-  if (int32_t n = WiFi.scanNetworks()) {
-      for (uint8_t i=0; i<n; i++) {
-          if (!strcmp(ssid, WiFi.SSID(i).c_str())) {
-              Serial.println(WiFi.channel(i));
-          }
-      }
-      Serial.println("Done scanning");
-  }
-}
-void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  Serial.printf("\rSent to %02x:%02x:%02x:%02x:%02x:%02x\t", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "[Delivery Success]" : "[Delivery Fail]");
-}
 void Master_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
-  Serial.printf("\rSent to %02x:%02x:%02x:%02x:%02x:%02x\t", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-  
-  if(!strcmp((const char *)mac_addr, (const char *)Slave1_Address)){
+  if(Match_MAC(mac_addr, Slave1_Address)){
     memcpy(&slave1_data, incomingData, sizeof(slave1_data));
-    Serial.printf("Encoders: Position(%8lld,%8lld)deg\n",
-                  slave1_data.LeftPosition,
-                  slave1_data.RightPosition);
+    LeftEncoder_Distance  = slave1_data.LeftPosition;
+    RightEncoder_Distance = slave1_data.RightPosition;
+  }
+  else {
+    Serial.print("\tError in mac\t");
   }
 }
 void ESPNOW_Send(const uint8_t *mac_addr, const uint8_t *data, size_t len){
   esp_now_peer_info_t peerInfo = {};
   memcpy(&peerInfo.peer_addr, mac_addr, 6);
-  peerInfo.channel = channel;
+  peerInfo.channel = master_channel;
   peerInfo.encrypt = false;
 
   if (!esp_now_is_peer_exist(mac_addr)) {
     esp_now_add_peer(&peerInfo);
   }
   esp_err_t result = esp_now_send(mac_addr, data, len); // Send message
-
-  // Print results to serial monitor
+  /* Print results to serial monitor
   if      (result == ESP_OK                  ) {Serial.println("Broadcast message success");}
   else if (result == ESP_ERR_ESPNOW_NOT_INIT ) {Serial.println("ESP-NOW not Init.");}
   else if (result == ESP_ERR_ESPNOW_ARG      ) {Serial.println("Invalid Argument");}
@@ -86,6 +57,7 @@ void ESPNOW_Send(const uint8_t *mac_addr, const uint8_t *data, size_t len){
   else if (result == ESP_ERR_ESPNOW_NO_MEM   ) {Serial.println("ESP_ERR_ESPNOW_NO_MEM");}
   else if (result == ESP_ERR_ESPNOW_NOT_FOUND) {Serial.println("Peer not found.");}
   else                                         {Serial.println("Unknown error");}
+  */
 }
 
 void App_DataUpdate() {
@@ -251,7 +223,7 @@ void Master_Setup(const char* ssid, const char* password) {
     Serial.print(".");
     delay(100);
   }
-  Serial.print("Station IP Address: ");   Serial.println(WiFi.localIP());
+  Serial.print("\nStation IP Address: ");   Serial.println(WiFi.localIP());
   Serial.print("Wi-Fi Channel: ");        Serial.println(WiFi.channel());
 
   // Init ESP-NOW
@@ -260,15 +232,13 @@ void Master_Setup(const char* ssid, const char* password) {
     return;
   }
 
-  esp_now_register_send_cb(OnDataSent);
+  //esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(Master_OnDataRecv);
-  getWiFiChannel(ssid);
+  master_channel = getWiFiChannel(ssid);
 
   server.begin();
   Serial.println(F("HTTP server started"));
   delay(1000);
-
-  Serial.println(F("\tDone"));
 }
 // Send to/receive from slaves
 void Master_dataUpdate() {

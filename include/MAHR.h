@@ -10,7 +10,6 @@ using namespace std;
 #define WHEEL_RADIUS_MM  54.0
 
 int64_t RightEncoder_Distance, LeftEncoder_Distance;    // Encoders::Distance in degrees
-int64_t RightEncoder_Distance_filtered, LeftEncoder_Distance_filtered; // Encoders::Filtered Distance in degrees
 
 float_t accelerometer[3], gyroscope[3], magnometer[3];  // IMU::9-axis reading data (0,1,2 = x,y,z)
 float_t quaternion[4];                                  // IMU::QuaternionFilter Values (0,1,2,3 = x,y,z,w)
