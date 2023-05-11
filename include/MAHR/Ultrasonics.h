@@ -4,11 +4,9 @@
 #include <MAHR.h>
 #include <NewPing.h>
 
-#define MIN_DISTANCE      3 // Minimum distance (in cm) to ping.
-#define MAX_DISTANCE    200 // Maximum distance (in cm) to ping.
-#define STEER_DISTANCE  50.0
-#define BREAK_DISTANCE  20.0
-#define K_DIST_TO_STEER 1.0
+#define MIN_DISTANCE      3     // Minimum distance (in cm) to ping.
+#define MAX_DISTANCE    200     // Maximum distance (in cm) to ping.
+#define BREAK_DISTANCE  30.0    // distance that break action activate (in cm)
 #define L   0
 #define CL  1
 #define CR  2

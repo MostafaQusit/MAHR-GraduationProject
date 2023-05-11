@@ -36,14 +36,6 @@ Notes:
 */
 
 // ESP32 (MASTER):
-    // SPI:
-        //built-in macros.
-        #define SPI_MOSI    23
-        #define SPI_MISO    19
-        #define SPI_SCK     18
-        #define SPI_SS1      5
-        #define SPI_SS2      4
-    /********************************************/
     // IMU(MPU9255):
         //built-in macros.
         #define IMU_SDA     21
@@ -71,13 +63,6 @@ Notes:
 
 /*******************************************************************/
 // ESP32 (SLAVE 1):
-    // SPI:
-        //built-in macros.
-        #define SPI_MOSI    23
-        #define SPI_MISO    19
-        #define SPI_SCK     18
-        #define SPI_SS       5
-    /********************************************/
     // DC motors:
         // Right side:
         #define MOTOR_RIGHT_PWM 27

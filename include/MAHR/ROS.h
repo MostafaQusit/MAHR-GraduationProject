@@ -21,8 +21,8 @@ ros::Publisher LeftEncoder_pub("/left_ticks", &LeftEnc);
 
   // Subscribers:
 void Motors(const geometry_msgs::Twist &cmd_msg) {
-  Target_RightMotor_mms = (int16_t) 300*( cmd_msg.linear.x + (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
-  Target_LeftMotor_mms  = (int16_t) 300*( cmd_msg.linear.x - (cmd_msg.angular.z)*WHEEL_BASE_MM/2.0 );
+  Target_RightMotor_mms = (int16_t) 300*( cmd_msg.linear.x + (cmd_msg.angular.z)/2.0 );
+  Target_LeftMotor_mms  = (int16_t) 300*( cmd_msg.linear.x - (cmd_msg.angular.z)/2.0 );
 }
 ros::Subscriber<geometry_msgs::Twist> Motors_sub("cmd_vel", Motors);
 

@@ -27,10 +27,10 @@ float_t dt;
 uint32_t current_time, previous_time;
 float_t RightEncoder_mms, LeftEncoder_mms;
 float_t RightEncoder_degs, LeftEncoder_degs;
-uint64_t RightEncoder_PrevDistance, LeftEncoder_PrevDistance;
+int64_t RightEncoder_PrevDistance, LeftEncoder_PrevDistance;
 
 int8_t sign;
-float_t diff, side_offset;
+float_t diff, Rout_offset, Rin_offset;
 int8_t PrevState, CurrState = LINEAR;
 int64_t RightEncoder_CurrDistance, LeftEncoder_CurrDistance;       // Average Previous travelled distance of Encoders in deg.
 double_t RightEncoder_OffsetDistance, LeftEncoder_OffsetDistance;  // Offest distance of Encoders in deg.
@@ -89,17 +89,18 @@ void Motors_RunSpeed() {
   interrupts();
 
   // Speed Calcu. :
-  current_time = micros();
   dt = ((float_t) (current_time - previous_time))/1.0e6;
-  RightEncoder_degs = ((float_t) (RightEncoder_Distance - RightEncoder_PrevDistance))/dt;
-  LeftEncoder_degs  = ((float_t) ( LeftEncoder_Distance -  LeftEncoder_PrevDistance))/dt;
+  RightEncoder_degs = ((float_t) (RightEncoder_Distance - RightEncoder_PrevDistance))/(millis()/1000.0 - previous_time);
+  LeftEncoder_degs  = ((float_t) ( LeftEncoder_Distance -  LeftEncoder_PrevDistance))/(millis()/1000.0 - previous_time);
   
-  previous_time = current_time;
-  RightEncoder_PrevDistance = RightEncoder_Distance;
-  LeftEncoder_PrevDistance  = LeftEncoder_Distance;
+  previous_time = millis()/1000.0;
+  noInterrupts();
+  RightEncoder_PrevDistance = -RightEncoder.getCount();
+  LeftEncoder_PrevDistance  = -LeftEncoder.getCount();
+  interrupts();
 
-  RightEncoder_degs = lp_sr.filt(RightEncoder_degs);
-  LeftEncoder_degs  = lp_sl.filt(LeftEncoder_degs);
+  //RightEncoder_degs = lp_sr.filt(RightEncoder_degs);
+  //LeftEncoder_degs  = lp_sl.filt(LeftEncoder_degs);
 
   RightEncoder_mms = RightEncoder_degs *(PI/180)*WHEEL_RADIUS_MM;
   LeftEncoder_mms  = LeftEncoder_degs  *(PI/180)*WHEEL_RADIUS_MM;
@@ -118,11 +119,12 @@ void Motors_RunSpeed() {
   RightEncoder_CurrDistance = RightEncoder_Distance - RightEncoder_OffsetDistance;
   LeftEncoder_CurrDistance  = LeftEncoder_Distance  - LeftEncoder_OffsetDistance;
 
-  side_offset = LeftMotor_mms - RightMotor_mms; // In 4 crossing-direction case: [in progressing]
-  
+  Rout_offset = LeftMotor_mms - RightMotor_mms; // In (rotation point out side robot) case
+  Rin_offset =  LeftMotor_mms + RightMotor_mms; // In (rotation point in  side robot) case [in progressing]
+
   // calcu. error difference:
-  if(CurrState == ROTATINAL) { diff = 5.0*((float_t)(RightEncoder_CurrDistance + LeftEncoder_CurrDistance)); }
-  else                       { diff = 5.0*((float_t)(RightEncoder_CurrDistance - LeftEncoder_CurrDistance + side_offset)); }
+  if(CurrState == ROTATINAL) { diff = 5.0*((float_t)(RightEncoder_CurrDistance + LeftEncoder_CurrDistance + Rin_offset )); }
+  else                       { diff = 5.0*((float_t)(RightEncoder_CurrDistance - LeftEncoder_CurrDistance + Rout_offset)); }
   
   // convert motor-speed from mm/s to RPM:
   float_t RightMotor_RPM = (RightMotor_mms - 0.5*diff     ) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
