@@ -18,11 +18,21 @@ std_msgs::Int16 RightEnc, LeftEnc;
 ros::Publisher quat_pub("quaternion", &q);
 ros::Publisher RightEncoder_pub("/right_ticks", &RightEnc);
 ros::Publisher LeftEncoder_pub("/left_ticks", &LeftEnc);
+double lastCmdVelReceived = 0;
 
   // Subscribers:
 void Motors(const geometry_msgs::Twist &cmd_msg) {
-  Target_RightMotor_mms = (int16_t) 300*( cmd_msg.linear.x + (cmd_msg.angular.z)/2.0 );
-  Target_LeftMotor_mms  = (int16_t) 300*( cmd_msg.linear.x - (cmd_msg.angular.z)/2.0 );
+  // Record timestamp of last velocity command received
+  lastCmdVelReceived = (millis() / 1000);
+
+  Required_RightMotor_mms = 300 * cmd_msg.linear.x + 50;
+  Required_LeftMotor_mms  = 300 * cmd_msg.linear.x + 50;
+
+  // Check if we need to turn 
+  if (cmd_msg.angular.z != 0.0) {
+    Required_RightMotor_mms =  100 * cmd_msg.angular.z;
+    Required_LeftMotor_mms  = -100 * cmd_msg.angular.z;
+  }
 }
 ros::Subscriber<geometry_msgs::Twist> Motors_sub("cmd_vel", Motors);
 
@@ -37,8 +47,11 @@ void ROS_Setup(int32_t BaudRate) {
 
   nh.subscribe(Motors_sub);
 }
-// Send the sensory data to/receive control action from ROS
-void ROS_DataUpdate() {
+// Send the sensory data to ROS
+void ROS_SendData() {
+  delay(30);
+  nh.spinOnce();
+
   // IMU:
   q.x = quaternion[0];
   q.y = quaternion[1];
@@ -49,9 +62,14 @@ void ROS_DataUpdate() {
   // Encoders:
   RightEnc.data = RightEncoder_Distance;    RightEncoder_pub.publish(&RightEnc);
   LeftEnc.data  = LeftEncoder_Distance;     LeftEncoder_pub.publish(&LeftEnc);    
-
-  nh.spinOnce();
-  delay(1);
+}
+// receive control action from ROS
+void ROS_ReceiveData(){
+  // Stop the car if there are no cmd_vel messages
+  if((millis()/1000) - lastCmdVelReceived > 1) {
+    Required_LeftMotor_mms  = 0;
+    Required_RightMotor_mms = 0;
+  }
 }
 
 #endif

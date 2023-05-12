@@ -32,7 +32,7 @@ void Ultrasonics_PrintData() {
 }
 // Overwrite on Speed values to avoid any odstacle
 void Ultrasonics_ObstacleAvoid(){
-    if(Target_LeftMotor_mms>=0 && Target_RightMotor_mms>=0){
+    if(Required_LeftMotor_mms>=0 && Required_RightMotor_mms>=0){
         float_t break_action = 1.0;
             
         // Get the minimum distance
@@ -48,8 +48,8 @@ void Ultrasonics_ObstacleAvoid(){
             break_action = constrain(break_action, 0.0, 1.0);
         }
 
-        Target_LeftMotor_mms  *= break_action;
-        Target_RightMotor_mms *= break_action;
+        Required_LeftMotor_mms  *= break_action;
+        Required_RightMotor_mms *= break_action;
     }
 }
 #endif

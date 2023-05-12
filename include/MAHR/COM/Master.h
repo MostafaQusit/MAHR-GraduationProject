@@ -20,7 +20,7 @@ const long timeoutTime = 100;        // Define timeout time in milliseconds (exa
 
 // MAC Addresses of the receivers
 uint8_t Slave1_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xEA, 0xF0};
-uint8_t Slave2_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8};
+//uint8_t Slave2_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8};
 int32_t master_channel;
 
 // Speed Slider

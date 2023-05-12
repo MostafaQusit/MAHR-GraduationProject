@@ -6,8 +6,8 @@
 #include <WiFi.h>
 
 typedef struct master1_messages {
-  int16_t RightSpeed;
-  int16_t LeftSpeed;
+  float_t RightSpeed;
+  float_t LeftSpeed;
   int16_t zSpeed;
   int16_t vFile;
 } master1_msgs;

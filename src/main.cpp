@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include <MAHR.h>
-//#define ESP32_MASTER
+#define ESP32_MASTER
 //#define ESP32_SLAVE1
-#define TEST
+//#define TEST
 
 
 #ifdef ESP32_MASTER
-#include <MAHR/IMU.h>
+//#include <MAHR/IMU.h>
 #include <MAHR/Ultrasonics.h>
 #include <MAHR/COM/Master.h>
 //#include <MAHR/GSM.h>
@@ -16,18 +16,17 @@ void setup() {
   Serial.begin(115200);
   while(!Serial){}
 
-  IMU_Setup();
+  //IMU_Setup();
   Master_Setup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
   //GSM_Setup();
-  //ROS_Setup(57600);
+  ROS_Setup(57600);
 }
 
 void loop() {
-  IMU_DataUpdate();
+  //IMU_DataUpdate();
   //IMU_PrintData();
   //Ultrasonics_DataUpdate();
   //Ultrasonics_ObstacleAvoid();
-  Master_dataUpdate();
   /* print data:
   Serial.printf("Motors: Speed(%4d,%4d)\tEncoders: Position(%8lld,%8lld)deg\n",
                 Target_LeftMotor_mms,
@@ -36,7 +35,9 @@ void loop() {
                 RightEncoder_Distance);
   */
   //GSM_CheckIncoming();
-  //ROS_DataUpdate();
+  ROS_SendData();
+  ROS_ReceiveData();
+  Master_dataUpdate();
 }
 #endif
 
@@ -58,9 +59,10 @@ void setup() {
 }
 
 void loop() {
+  Encoders_DataUpdate();
   Slave1_DataUpdate();
   //Serial.print(zAxis_Speed);  Serial.print("\t");
-  //Motors_PrintData();
+  Motors_PrintData();
   Motors_RunSpeed();   
   zAxis_Move();
   //Mp3_StateUpdate();
