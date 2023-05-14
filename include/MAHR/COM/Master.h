@@ -140,17 +140,17 @@ void App_DataUpdate() {
 
             // Incoming Requests:
             // Robot:
-            if      (header.indexOf("GET /forward" )>=0) { Target_LeftMotor_mms= Speed;   Target_RightMotor_mms= Speed; }
-            else if (header.indexOf("GET /backward")>=0) { Target_LeftMotor_mms=-Speed;   Target_RightMotor_mms=-Speed; }
-            else if (header.indexOf("GET /left"    )>=0) { Target_LeftMotor_mms=-Speed;   Target_RightMotor_mms= Speed; }
-            else if (header.indexOf("GET /right"   )>=0) { Target_LeftMotor_mms= Speed;   Target_RightMotor_mms=-Speed; }
+            if      (header.indexOf("GET /forward" )>=0) { Required_LeftMotor_mms= Speed;   Required_RightMotor_mms= Speed; }
+            else if (header.indexOf("GET /backward")>=0) { Required_LeftMotor_mms=-Speed;   Required_RightMotor_mms=-Speed; }
+            else if (header.indexOf("GET /left"    )>=0) { Required_LeftMotor_mms=-Speed;   Required_RightMotor_mms= Speed; }
+            else if (header.indexOf("GET /right"   )>=0) { Required_LeftMotor_mms= Speed;   Required_RightMotor_mms=-Speed; }
             
-            else if (header.indexOf("GET /FR"      )>=0) { Target_LeftMotor_mms= Speed;   Target_RightMotor_mms= Speed/2; }
-            else if (header.indexOf("GET /FL"      )>=0) { Target_LeftMotor_mms= Speed/2; Target_RightMotor_mms= Speed;   }
-            else if (header.indexOf("GET /DR"      )>=0) { Target_LeftMotor_mms=-Speed;   Target_RightMotor_mms=-Speed/2; }
-            else if (header.indexOf("GET /DL"      )>=0) { Target_LeftMotor_mms=-Speed/2; Target_RightMotor_mms=-Speed;   }
+            else if (header.indexOf("GET /FR"      )>=0) { Required_LeftMotor_mms= Speed;   Required_RightMotor_mms= Speed/2; }
+            else if (header.indexOf("GET /FL"      )>=0) { Required_LeftMotor_mms= Speed/2; Required_RightMotor_mms= Speed;   }
+            else if (header.indexOf("GET /DR"      )>=0) { Required_LeftMotor_mms=-Speed;   Required_RightMotor_mms=-Speed/2; }
+            else if (header.indexOf("GET /DL"      )>=0) { Required_LeftMotor_mms=-Speed/2; Required_RightMotor_mms=-Speed;   }
 
-            else if (header.indexOf("GET /stop"    )>=0) { Target_LeftMotor_mms=0; Target_RightMotor_mms=0; }
+            else if (header.indexOf("GET /stop"    )>=0) { Required_LeftMotor_mms=0; Required_RightMotor_mms=0; }
             
             // Arm:
             else if (header.indexOf("GET /AUp"   )>=0) { armX= 100; armY= 100; }
@@ -242,10 +242,10 @@ void Master_Setup(const char* ssid, const char* password) {
 }
 // Send to/receive from slaves
 void Master_dataUpdate() {
-  App_DataUpdate();
+  //App_DataUpdate();
 
-  master1_data.LeftSpeed  = Target_LeftMotor_mms;
-  master1_data.RightSpeed = Target_RightMotor_mms;
+  master1_data.LeftSpeed  = Required_LeftMotor_mms;
+  master1_data.RightSpeed = Required_RightMotor_mms;
   master1_data.zSpeed     = zAxis_Speed;
   master1_data.vFile      = voice_file;
   ESPNOW_Send(Slave1_Address, (const uint8_t *) &master1_data, sizeof(master1_data));

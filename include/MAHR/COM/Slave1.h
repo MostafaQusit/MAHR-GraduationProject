@@ -14,8 +14,8 @@ int32_t slave1_channel;
 void Slave1_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {  
   if(Match_MAC(mac_addr, Master_Address)){
     memcpy(&master1_data, incomingData, sizeof(master1_data));
-    Target_LeftMotor_mms  = master1_data.LeftSpeed;
-    Target_RightMotor_mms = master1_data.RightSpeed;
+    Required_LeftMotor_mms  = master1_data.LeftSpeed;
+    Required_RightMotor_mms = master1_data.RightSpeed;
     zAxis_Speed = master1_data.zSpeed;
     voice_file = master1_data.vFile;
   }

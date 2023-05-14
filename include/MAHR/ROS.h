@@ -30,8 +30,8 @@ void Motors(const geometry_msgs::Twist &cmd_msg) {
 
   // Check if we need to turn 
   if (cmd_msg.angular.z != 0.0) {
-    Required_RightMotor_mms =  100 * cmd_msg.angular.z;
-    Required_LeftMotor_mms  = -100 * cmd_msg.angular.z;
+    Required_RightMotor_mms =  200 * cmd_msg.angular.z;
+    Required_LeftMotor_mms  = -200 * cmd_msg.angular.z;
   }
 }
 ros::Subscriber<geometry_msgs::Twist> Motors_sub("cmd_vel", Motors);

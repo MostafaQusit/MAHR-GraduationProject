@@ -3,11 +3,10 @@
 #define ESP32_MASTER
 //#define ESP32_SLAVE1
 //#define TEST
-
+//#define TEST2
 
 #ifdef ESP32_MASTER
-//#include <MAHR/IMU.h>
-#include <MAHR/Ultrasonics.h>
+//#include <MAHR/Ultrasonics.h>
 #include <MAHR/COM/Master.h>
 //#include <MAHR/GSM.h>
 #include <MAHR/ROS.h>
@@ -16,7 +15,6 @@ void setup() {
   Serial.begin(115200);
   while(!Serial){}
 
-  //IMU_Setup();
   Master_Setup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
   //GSM_Setup();
   ROS_Setup(57600);
@@ -28,9 +26,9 @@ void loop() {
   //Ultrasonics_DataUpdate();
   //Ultrasonics_ObstacleAvoid();
   /* print data:
-  Serial.printf("Motors: Speed(%4d,%4d)\tEncoders: Position(%8lld,%8lld)deg\n",
-                Target_LeftMotor_mms,
-                Target_RightMotor_mms,
+  Serial.printf("Motors: Speed(%4.0f,%4.0f)\tEncoders: Position(%8lld,%8lld)deg\n",
+                Required_LeftMotor_mms,
+                Required_RightMotor_mms,
                 LeftEncoder_Distance,
                 RightEncoder_Distance);
   */
@@ -40,7 +38,6 @@ void loop() {
   Master_dataUpdate();
 }
 #endif
-
 
 #ifdef ESP32_SLAVE1
 #include <MAHR/COM/Slave1.h>
@@ -70,26 +67,54 @@ void loop() {
 #endif
 
 #ifdef TEST
-//#include <MAHR/MP3.h>
-#include <MAHR/GSM.h>
+#include <MAHR/MP3.h>
 
 void setup(){
   Serial.begin(115200);
   while(!Serial){}
-
-  GSM_Setup();
-  //Mp3_Setup();
-  //mp3.playFolder(1,1);
-  GSM_SendSMS(koskot_phone,"gsm test");
-  GSM_MakeCall(attia_phone);
-  //mp3.start();
+  Mp3_Setup();
 }
 
 void loop(){
-  GSM_CheckIncoming();
   //Mp3_StateUpdate();
-  //Serial.print(mp3.currentMode());
-  //Serial.print(mp3.isPlaying()? "\tplaying...\t" : "\tnot playing\t");
-  //mp3.printError();
+  Mp3_play(1);  delay(10000);
+  Mp3_play(4);  delay(10000);
+  Mp3_play(2);  delay(10000);
+  Mp3_play(3);  delay(10000);
+}
+#endif
+
+#ifdef TEST2
+#include <ESP32Servo.h>
+
+Servo myservo;  // create servo object to control a servo
+// 16 servo objects can be created on the ESP32
+
+int pos = 0;    // variable to store the servo position
+// Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33
+int servoPin = 27;
+
+void setup() {
+	// Allow allocation of all timers
+	ESP32PWM::allocateTimer(0);
+	ESP32PWM::allocateTimer(1);
+	ESP32PWM::allocateTimer(2);
+	ESP32PWM::allocateTimer(3);
+	myservo.setPeriodHertz(50);    // standard 50 hz servo
+	myservo.attach(servoPin, 500, 2500); // attaches the servo on pin 18 to the servo object
+	// using default min/max of 1000us and 2000us
+	// different servos may require different min/max settings for an accurate 0 to 180 sweep
+}
+
+void loop() {
+	for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+		// in steps of 1 degree
+		myservo.write(pos);    // tell servo to go to position in variable 'pos'
+		delay(15);             // waits 15ms for the servo to reach the position
+	}
+	for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+		myservo.write(pos);    // tell servo to go to position in variable 'pos'
+		delay(15);             // waits 15ms for the servo to reach the position
+	}
 }
 #endif

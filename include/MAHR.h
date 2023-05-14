@@ -17,7 +17,6 @@ float_t Yaw_angle, Pitch_angle, Roll_angle;             // IMU::3-Main Angles
 
 uint32_t ultrasonics[4];                                // Ultrasonics::Distance in cm
 float_t Required_RightMotor_mms, Required_LeftMotor_mms;    // Motors::Speed in mm/s
-float_t RightEncoder_mms, LeftEncoder_mms;
 
 uint16_t voice_file;                                    // MP3::file number
 int32_t Target_PositionX, Target_PositionY;             // ROS::Target Position
@@ -102,6 +101,5 @@ class LowPass {
       return y[0];
     }
 };
-
 
 #endif

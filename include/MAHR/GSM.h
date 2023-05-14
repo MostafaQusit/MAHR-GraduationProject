@@ -22,19 +22,19 @@ void GSM_Setup() {
   while (!mySerial){}
   // General Init:
   Serial.println(F("GSM initializing..."));
-  Serial.println("\tSet Phone Function...  \t" + String(gsm.setPhoneFunc(1)      ));  delay(100);
-  Serial.println("\tIs SIM Inserted...     \t" + String(gsm.isSimInserted()      ));  delay(100);
-  Serial.println("\tNetwork Registration...\t" + String(gsm.isRegistered()       ));  delay(100);
-  Serial.println("\tSignal Quality...      \t" + String(gsm.signalQuality()      ));  delay(100);
-  Serial.println("\tOperator Name...       \t" + String(gsm.operatorNameFromSim()));  delay(100);
+  Serial.println("\tSet Phone Function...  \t" + String(gsm.setPhoneFunc(1)      ));  delay(50);
+  Serial.println("\tIs SIM Inserted...     \t" + String(gsm.isSimInserted()      ));  delay(50);
+  Serial.println("\tNetwork Registration...\t" + String(gsm.isRegistered()       ));  delay(50);
+  Serial.println("\tSignal Quality...      \t" + String(gsm.signalQuality()      ));  delay(50);
+  Serial.println("\tOperator Name...       \t" + String(gsm.operatorNameFromSim()));  delay(50);
   // SMS Init:
   Serial.println(F("SMS initializing..."));
-  Serial.print(F("\tset Text Mode...  \t"));  Serial.println(sms.setTextMode(true));   delay(100);
-  Serial.print(F("\tInit SMS...       \t"));  Serial.println(sms.initSMS()        );   delay(100);
-  Serial.print(F("\tList Unread SMS...\t"));  Serial.println(sms.list(true)       );   delay(100);
+  Serial.print(F("\tset Text Mode...  \t"));  Serial.println(sms.setTextMode(true));   delay(50);
+  Serial.print(F("\tInit SMS...       \t"));  Serial.println(sms.initSMS()        );   delay(50);
+  Serial.print(F("\tList Unread SMS...\t"));  Serial.println(sms.list(true)       );   delay(50);
   // Call Init:
   Serial.println(F("Call initializing..."));
-  Serial.print(F("\tInit Call...      \t"));  Serial.println(call.initCall());  delay(100);
+  Serial.print(F("\tInit Call...      \t"));  Serial.println(call.initCall());  delay(50);
 }
 // Send a SMS Massege to someone
 bool GSM_SendSMS(String phone_number, String message) {
