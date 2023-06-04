@@ -5,6 +5,7 @@
 #include <MAHR/COM.h>
 
 master1_msgs master1_data;
+master2_msgs master2_data;
 slave1_msgs slave1_data;
 
 WiFiServer server(80);
@@ -16,7 +17,7 @@ IPAddress subnet(255, 255, 0, 0);
 
 unsigned long currentTime = millis(); // Current time
 unsigned long previousTime = 0;       // Previous time
-const long timeoutTime = 100;        // Define timeout time in milliseconds (example: 2000ms = 2s)
+const long timeoutTime = 100;         // Define timeout time in milliseconds (example: 2000ms = 2s)
 
 // MAC Addresses of the receivers
 uint8_t Slave1_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xEA, 0xF0};
@@ -38,26 +39,6 @@ void Master_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int
   else {
     Serial.print("\tError in mac\t");
   }
-}
-void ESPNOW_Send(const uint8_t *mac_addr, const uint8_t *data, size_t len){
-  esp_now_peer_info_t peerInfo = {};
-  memcpy(&peerInfo.peer_addr, mac_addr, 6);
-  peerInfo.channel = master_channel;
-  peerInfo.encrypt = false;
-
-  if (!esp_now_is_peer_exist(mac_addr)) {
-    esp_now_add_peer(&peerInfo);
-  }
-  esp_err_t result = esp_now_send(mac_addr, data, len); // Send message
-  /* Print results to serial monitor
-  if      (result == ESP_OK                  ) {Serial.println("Broadcast message success");}
-  else if (result == ESP_ERR_ESPNOW_NOT_INIT ) {Serial.println("ESP-NOW not Init.");}
-  else if (result == ESP_ERR_ESPNOW_ARG      ) {Serial.println("Invalid Argument");}
-  else if (result == ESP_ERR_ESPNOW_INTERNAL ) {Serial.println("Internal Error");}
-  else if (result == ESP_ERR_ESPNOW_NO_MEM   ) {Serial.println("ESP_ERR_ESPNOW_NO_MEM");}
-  else if (result == ESP_ERR_ESPNOW_NOT_FOUND) {Serial.println("Peer not found.");}
-  else                                         {Serial.println("Unknown error");}
-  */
 }
 
 void App_DataUpdate() {
@@ -153,11 +134,11 @@ void App_DataUpdate() {
             else if (header.indexOf("GET /stop"    )>=0) { Required_LeftMotor_mms=0; Required_RightMotor_mms=0; }
             
             // Arm:
-            else if (header.indexOf("GET /AUp"   )>=0) { armX= 100; armY= 100; }
-            else if (header.indexOf("GET /Adown" )>=0) { armX=-100; armY=-100; }
-            else if (header.indexOf("GET /Aleft" )>=0) { armX=-100; armY= 100; }
-            else if (header.indexOf("GET /Aright")>=0) { armX= 100; armY=-100; }
-            else if (header.indexOf("GET /Astop" )>=0) { armX=   0; armY=   0; }
+            else if (header.indexOf("GET /AUp"   )>=0) { armX= 1; armY= 1; }
+            else if (header.indexOf("GET /Adown" )>=0) { armX=-1; armY=-1; }
+            else if (header.indexOf("GET /Aleft" )>=0) { armX=-1; armY= 1; }
+            else if (header.indexOf("GET /Aright")>=0) { armX= 1; armY=-1; }
+            else if (header.indexOf("GET /Astop" )>=0) { armX= 0; armY= 0; }
 
             // Z-axis:
             else if (header.indexOf("GET /zUp"  )>=0) { zAxis_Speed =  1000; }
@@ -165,19 +146,19 @@ void App_DataUpdate() {
             else if (header.indexOf("GET /zStop")>=0) { zAxis_Speed =     0; }
 
             // Wrist:
-            else if (header.indexOf("GET /wristUp"  )>=0) { wrist =  100; }
-            else if (header.indexOf("GET /wristDown")>=0) { wrist = -100; }
-            else if (header.indexOf("GET /wStop"    )>=0) { wrist =    0; }
+            else if (header.indexOf("GET /wristUp"  )>=0) { wrist_speed =  1; }
+            else if (header.indexOf("GET /wristDown")>=0) { wrist_speed = -1; }
+            else if (header.indexOf("GET /wStop"    )>=0) { wrist_speed =  0; }
 
             // Roll:
-            else if (header.indexOf("GET /rollCW")>=0) { roll =  100; }
-            else if (header.indexOf("GET /rolCCW")>=0) { roll = -100; }
-            else if (header.indexOf("GET /rStop" )>=0) { roll =    0; }
+            else if (header.indexOf("GET /rollCW")>=0) { roll_speed =  1; }
+            else if (header.indexOf("GET /rolCCW")>=0) { roll_speed = -1; }
+            else if (header.indexOf("GET /rStop" )>=0) { roll_speed =  0; }
 
             // Grip:
-            else if (header.indexOf("GET /grip"  )>=0) { Grip =  100; }
-            else if (header.indexOf("GET /ungrip")>=0) { Grip = -100; }
-            else if (header.indexOf("GET /gStop" )>=0) { Grip =    0; }
+            else if (header.indexOf("GET /grip"  )>=0) { grip_speed =  1; }
+            else if (header.indexOf("GET /ungrip")>=0) { grip_speed = -1; }
+            else if (header.indexOf("GET /gStop" )>=0) { grip_speed =  0; }
 
             // GET /?value=180& HTTP/1.1
             else if(header.indexOf("GET /Speed=")>=0) {
@@ -242,13 +223,21 @@ void Master_Setup(const char* ssid, const char* password) {
 }
 // Send to/receive from slaves
 void Master_dataUpdate() {
-  //App_DataUpdate();
+  App_DataUpdate();
 
-  master1_data.LeftSpeed  = Required_LeftMotor_mms;
-  master1_data.RightSpeed = Required_RightMotor_mms;
-  master1_data.zSpeed     = zAxis_Speed;
-  master1_data.vFile      = voice_file;
-  ESPNOW_Send(Slave1_Address, (const uint8_t *) &master1_data, sizeof(master1_data));
+  master1_data.linear  = motors_linear;
+  master1_data.angular = motors_angular;
+  master1_data.zSpeed  = zAxis_Speed;
+  master1_data.vFile   = voice_file;
+  ESPNOW_Send(master_channel, Slave1_Address, (const uint8_t *)&master1_data, sizeof(master1_data));
+  /* for slave 2:
+  master2_data.roll_speed  = roll_speed;
+  master2_data.grip_speed  = grip_speed;
+  master2_data.wrist_speed = wrist_speed;
+  master2_data.armX        = armX;
+  master2_data.armY        = armY;
+  ESPNOW_Send(master_channel, Slave2_Address, (const uint8_t *)&master1_data, sizeof(master1_data));
+  */
 }
 
 #endif

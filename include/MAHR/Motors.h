@@ -140,7 +140,7 @@ void Motors_RunSpeed() {
 }
 // Print the Encoder Position and Speed
 void Motors_PrintData() {
-  Serial.printf("Motors: Speed(%4.0f,%4.0f)\t\tEncoders: Position(%8lld,%8lld)deg\tSpeed(%10.0f,%10.0f)deg\n",
+  Serial.printf("Motors: Speed(%6.2f,%6.2f)\t\tEncoders: Position(%8lld,%8lld)deg\tSpeed(%10.0f,%10.0f)deg\n",
                 LeftMotor_mms,
                 RightMotor_mms,
                 LeftEncoder_Distance,

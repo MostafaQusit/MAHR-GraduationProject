@@ -6,16 +6,16 @@
 #include <ros/time.h>
 #include <std_msgs/Int16.h>
 #include <geometry_msgs/Vector3.h>
-#include <geometry_msgs/Quaternion.h>
+//#include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Twist.h>
 
 ros::NodeHandle nh;
 
   // Publishers:
-geometry_msgs::Quaternion q;
+//geometry_msgs::Quaternion q;
 std_msgs::Int16 RightEnc, LeftEnc;
 
-ros::Publisher quat_pub("quaternion", &q);
+//ros::Publisher quat_pub("quaternion", &q);
 ros::Publisher RightEncoder_pub("/right_ticks", &RightEnc);
 ros::Publisher LeftEncoder_pub("/left_ticks", &LeftEnc);
 double lastCmdVelReceived = 0;
@@ -24,15 +24,8 @@ double lastCmdVelReceived = 0;
 void Motors(const geometry_msgs::Twist &cmd_msg) {
   // Record timestamp of last velocity command received
   lastCmdVelReceived = (millis() / 1000);
-
-  Required_RightMotor_mms = 300 * cmd_msg.linear.x + 50;
-  Required_LeftMotor_mms  = 300 * cmd_msg.linear.x + 50;
-
-  // Check if we need to turn 
-  if (cmd_msg.angular.z != 0.0) {
-    Required_RightMotor_mms =  200 * cmd_msg.angular.z;
-    Required_LeftMotor_mms  = -200 * cmd_msg.angular.z;
-  }
+  motors_linear  = cmd_msg.linear.x;
+  motors_angular = cmd_msg.angular.z;
 }
 ros::Subscriber<geometry_msgs::Twist> Motors_sub("cmd_vel", Motors);
 
@@ -41,7 +34,7 @@ void ROS_Setup(int32_t BaudRate) {
   nh.getHardware()->setBaud(BaudRate);
   nh.initNode();
 
-  nh.advertise(quat_pub);
+  //nh.advertise(quat_pub);
   nh.advertise(RightEncoder_pub);
   nh.advertise(LeftEncoder_pub);
 
@@ -53,11 +46,11 @@ void ROS_SendData() {
   nh.spinOnce();
 
   // IMU:
-  q.x = quaternion[0];
-  q.y = quaternion[1];
-  q.z = quaternion[2];
-  q.w = quaternion[3];
-  quat_pub.publish(&q);
+  //q.x = quaternion[0];
+  //q.y = quaternion[1];
+  //q.z = quaternion[2];
+  //q.w = quaternion[3];
+  //quat_pub.publish(&q);
   
   // Encoders:
   RightEnc.data = RightEncoder_Distance;    RightEncoder_pub.publish(&RightEnc);

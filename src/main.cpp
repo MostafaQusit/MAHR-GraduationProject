@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <MAHR.h>
-#define ESP32_MASTER
-//#define ESP32_SLAVE1
+//#define ESP32_MASTER
+#define ESP32_SLAVE1
 //#define TEST
 //#define TEST2
 
@@ -9,7 +9,7 @@
 //#include <MAHR/Ultrasonics.h>
 #include <MAHR/COM/Master.h>
 //#include <MAHR/GSM.h>
-#include <MAHR/ROS.h>
+//#include <MAHR/ROS.h>
 
 void setup() {
   Serial.begin(115200);
@@ -17,24 +17,18 @@ void setup() {
 
   Master_Setup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
   //GSM_Setup();
-  ROS_Setup(57600);
+  //ROS_Setup(57600);
 }
 
 void loop() {
-  //IMU_DataUpdate();
-  //IMU_PrintData();
   //Ultrasonics_DataUpdate();
   //Ultrasonics_ObstacleAvoid();
-  /* print data:
-  Serial.printf("Motors: Speed(%4.0f,%4.0f)\tEncoders: Position(%8lld,%8lld)deg\n",
-                Required_LeftMotor_mms,
-                Required_RightMotor_mms,
-                LeftEncoder_Distance,
-                RightEncoder_Distance);
-  */
+  // print data:
+  Serial.printf("10\t\tMotors: Speed(%4.0f,%4.0f)\n", Required_LeftMotor_mms, Required_RightMotor_mms);
+  
   //GSM_CheckIncoming();
-  ROS_SendData();
-  ROS_ReceiveData();
+  //ROS_SendData();
+  //ROS_ReceiveData();
   Master_dataUpdate();
 }
 #endif
@@ -67,20 +61,20 @@ void loop() {
 #endif
 
 #ifdef TEST
-#include <MAHR/MP3.h>
+#include <AsyncTCP.h>
+#include <DNSServer.h>
+#include <AsyncElegantOTA.h>
+#include <ESPAsyncWebServer.h>
+AsyncWebServer AsyncServer(80);
 
 void setup(){
   Serial.begin(115200);
   while(!Serial){}
-  Mp3_Setup();
-}
+  AsyncServer.begin();
+  AsyncElegantOTA.begin(&AsyncServer);}
 
 void loop(){
-  //Mp3_StateUpdate();
-  Mp3_play(1);  delay(10000);
-  Mp3_play(4);  delay(10000);
-  Mp3_play(2);  delay(10000);
-  Mp3_play(3);  delay(10000);
+  // nothing.
 }
 #endif
 
