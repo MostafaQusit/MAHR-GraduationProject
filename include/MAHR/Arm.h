@@ -5,7 +5,14 @@
 #include <ESP32Servo.h>
 #include <AccelStepper.h>
 
-#define STEPPER_PPR     800.0
+#define FULL_STEP       1.0000
+#define HALF_STEP       0.5000
+#define QUARTER_STEP    0.2500
+#define EIGHTH_STEP     0.1250
+#define SIXTEENTH_STEP  0.0625
+#define STEPPER_MICROSTEPPING   HALF_STEP 
+
+#define STEPPER_PPR     (200.0/STEPPER_MICROSTEPPING)
 #define LINK1_LENGTH_MM 100.0
 #define LINK2_LENGTH_MM 100.0
 #define RADIUS          (sqrtf(powf(LINK1_LENGTH_MM,2)+powf(LINK2_LENGTH_MM,2)))
@@ -20,8 +27,21 @@ AccelStepper link2(1, SM_LINK2_STP, SM_LINK2_DIR);
 AccelStepper wrist(1, SM_WRIST_STP, SM_WRIST_DIR);
 AccelStepper roll (1, SM_ROLL_STP , SM_ROLL_DIR );
 
+void microstepping(float_t microstepping_resolution){
+    if     (microstepping_resolution == FULL_STEP     ) {digitalWrite(MS3, LOW); digitalWrite(MS2, LOW); digitalWrite(MS1, LOW);}
+    else if(microstepping_resolution == HALF_STEP     ) {digitalWrite(MS3, LOW); digitalWrite(MS2, LOW); digitalWrite(MS1,HIGH);}
+    else if(microstepping_resolution == QUARTER_STEP  ) {digitalWrite(MS3, LOW); digitalWrite(MS2,HIGH); digitalWrite(MS1, LOW);}
+    else if(microstepping_resolution == EIGHTH_STEP   ) {digitalWrite(MS3, LOW); digitalWrite(MS2,HIGH); digitalWrite(MS1,HIGH);}
+    else if(microstepping_resolution == SIXTEENTH_STEP) {digitalWrite(MS3,HIGH); digitalWrite(MS2,HIGH); digitalWrite(MS1,HIGH);}
+}
+
 // Go Home
 void Arm_Homing(){
+    link1.setSpeed(1000*STEPPER_MICROSTEPPING);
+    link2.setSpeed(1000*STEPPER_MICROSTEPPING);
+    wrist.setSpeed(1000*STEPPER_MICROSTEPPING);
+    roll .setSpeed(1000*STEPPER_MICROSTEPPING);
+
     while((digitalRead(LS_LINK1) && digitalRead(LS_LINK2) &&
            digitalRead(LS_WRIST) && digitalRead(LS_ROLL )) == false){
 
@@ -50,15 +70,21 @@ void Arm_Setup(){
 	lGrip.setPeriodHertz(50);    lGrip.attach(SERVO_RGRIP, 500, 2500);
     rGrip.setPeriodHertz(50);    rGrip.attach(SERVO_LGRIP, 500, 2500);
 
-    link1.setMaxSpeed(1000);    link1.setAcceleration(2000);
-    link2.setMaxSpeed(1000);    link2.setAcceleration(2000);
-    wrist.setMaxSpeed(1000);    wrist.setAcceleration(2000);
-    roll .setMaxSpeed(1000);    roll .setAcceleration(2000);
+    microstepping(STEPPER_MICROSTEPPING);
+
+    link1.setMaxSpeed(2000*STEPPER_MICROSTEPPING);    link1.setAcceleration(1000);
+    link2.setMaxSpeed(2000*STEPPER_MICROSTEPPING);    link2.setAcceleration(1000);
+    wrist.setMaxSpeed(2000*STEPPER_MICROSTEPPING);    wrist.setAcceleration(1000);
+    roll .setMaxSpeed(2000*STEPPER_MICROSTEPPING);    roll .setAcceleration(1000);
 
     pinMode(LS_LINK1, INPUT_PULLDOWN);
     pinMode(LS_LINK2, INPUT_PULLDOWN);
     pinMode(LS_WRIST, INPUT_PULLDOWN);
     pinMode(LS_ROLL , INPUT_PULLDOWN);
+
+    pinMode(MS1, INPUT_PULLDOWN);
+    pinMode(MS2, INPUT_PULLDOWN);
+    pinMode(MS3, INPUT_PULLDOWN);
 
     Arm_Homing();
 
@@ -85,7 +111,7 @@ void Arm_run(){
     ArmY_position = radius * sinf(theta);
 
     // Calculate the Target Angles (inverse kinematics):
-
+    
 
     // Apply the constrains on angles:
     link1_angle = constrain(link1_angle, 0, 180);

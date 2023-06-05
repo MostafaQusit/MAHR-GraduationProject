@@ -223,7 +223,7 @@ void Master_Setup(const char* ssid, const char* password) {
 }
 // Send to/receive from slaves
 void Master_dataUpdate() {
-  App_DataUpdate();
+  //App_DataUpdate();
 
   master1_data.linear  = motors_linear;
   master1_data.angular = motors_angular;

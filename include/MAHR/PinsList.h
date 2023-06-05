@@ -94,24 +94,29 @@ Notes:
 /*******************************************************************/
 // ESP32 (SLAVE 2):
     // Servos
-        #define SERVO_LGRIP  8
-        #define SERVO_RGRIP  9
+        #define SERVO_LGRIP  25
+        #define SERVO_RGRIP  26
     
     // Stepper Motors:
-        #define SM_ROLL_STP     10
-        #define SM_ROLL_DIR     11
+        #define SM_LINK1_STP     4
+        #define SM_LINK1_DIR    16
 
-        #define SM_WRIST_STP    12
+        #define SM_LINK2_STP    33
+        #define SM_LINK2_DIR    32
+
+        #define SM_WRIST_STP    15
         #define SM_WRIST_DIR    13
 
-        #define SM_LINK1_STP    14
-        #define SM_LINK1_DIR    15
-
-        #define SM_LINK2_STP    16
-        #define SM_LINK2_DIR    17
-
+        #define SM_ROLL_STP     14
+        #define SM_ROLL_DIR     27
+    
+    // Microstepping Pins:
+        #define MS1             18
+        #define MS2              5
+        #define MS3             17
+    
     // Limit Switches:
-        #define LS_LINK1        20
+        #define LS_LINK1        19
         #define LS_LINK2        21
         #define LS_WRIST        22
         #define LS_ROLL         23
