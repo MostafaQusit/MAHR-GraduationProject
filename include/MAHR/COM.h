@@ -19,7 +19,7 @@ typedef struct slave1_messages {
 
 typedef struct master2_messages {
   float_t grip_speed;
-  float_t wrist_speed;
+  float_t pitch_speed;
   float_t roll_speed;
   float_t armX, armY;
 } master2_msgs;

@@ -15,7 +15,7 @@ void Slave2_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int
     memcpy(&master2_data, incomingData, sizeof(master2_data));
     roll_speed  = master2_data.roll_speed;
     grip_speed  = master2_data.grip_speed;
-    wrist_speed = master2_data.wrist_speed;
+    pitch_speed = master2_data.pitch_speed;
     armX        = master2_data.armX;
     armY        = master2_data.armY;
   }

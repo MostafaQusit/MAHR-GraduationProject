@@ -28,7 +28,7 @@ int32_t master_channel;
 int Speed_Start = 0;
 int Speed_End = 0;
 String SpeedString;
-uint16_t Speed;
+float_t Speed;
 
 void Master_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
   if(Match_MAC(mac_addr, Slave1_Address)){
@@ -117,21 +117,19 @@ void App_DataUpdate() {
             client.println(F("</body></html>"));     
             */
 
-
-
             // Incoming Requests:
             // Robot:
-            if      (header.indexOf("GET /forward" )>=0) { Required_LeftMotor_mms= Speed;   Required_RightMotor_mms= Speed; }
-            else if (header.indexOf("GET /backward")>=0) { Required_LeftMotor_mms=-Speed;   Required_RightMotor_mms=-Speed; }
-            else if (header.indexOf("GET /left"    )>=0) { Required_LeftMotor_mms=-Speed;   Required_RightMotor_mms= Speed; }
-            else if (header.indexOf("GET /right"   )>=0) { Required_LeftMotor_mms= Speed;   Required_RightMotor_mms=-Speed; }
+            if      (header.indexOf("GET /forward" )>=0) { motors_linear =  Speed;   motors_angular =      0; }
+            else if (header.indexOf("GET /backward")>=0) { motors_linear = -Speed;   motors_angular =      0; }
+            else if (header.indexOf("GET /left"    )>=0) { motors_linear =      0;   motors_angular =  Speed; }
+            else if (header.indexOf("GET /right"   )>=0) { motors_linear =      0;   motors_angular = -Speed; }
             
-            else if (header.indexOf("GET /FR"      )>=0) { Required_LeftMotor_mms= Speed;   Required_RightMotor_mms= Speed/2; }
-            else if (header.indexOf("GET /FL"      )>=0) { Required_LeftMotor_mms= Speed/2; Required_RightMotor_mms= Speed;   }
-            else if (header.indexOf("GET /DR"      )>=0) { Required_LeftMotor_mms=-Speed;   Required_RightMotor_mms=-Speed/2; }
-            else if (header.indexOf("GET /DL"      )>=0) { Required_LeftMotor_mms=-Speed/2; Required_RightMotor_mms=-Speed;   }
+            else if (header.indexOf("GET /FR"      )>=0) { motors_linear =  0.5*Speed;   motors_angular = -0.5*Speed; }
+            else if (header.indexOf("GET /FL"      )>=0) { motors_linear =  0.5*Speed;   motors_angular =  0.5*Speed; }
+            else if (header.indexOf("GET /DR"      )>=0) { motors_linear = -0.5*Speed;   motors_angular = -0.5*Speed; }
+            else if (header.indexOf("GET /DL"      )>=0) { motors_linear = -0.5*Speed;   motors_angular =  0.5*Speed; }
 
-            else if (header.indexOf("GET /stop"    )>=0) { Required_LeftMotor_mms=0; Required_RightMotor_mms=0; }
+            else if (header.indexOf("GET /stop"    )>=0) { motors_linear =      0;   motors_angular =      0; }
             
             // Arm:
             else if (header.indexOf("GET /AUp"   )>=0) { armX= 1; armY= 1; }
@@ -146,9 +144,9 @@ void App_DataUpdate() {
             else if (header.indexOf("GET /zStop")>=0) { zAxis_Speed =     0; }
 
             // Wrist:
-            else if (header.indexOf("GET /wristUp"  )>=0) { wrist_speed =  1; }
-            else if (header.indexOf("GET /wristDown")>=0) { wrist_speed = -1; }
-            else if (header.indexOf("GET /wStop"    )>=0) { wrist_speed =  0; }
+            else if (header.indexOf("GET /wristUp"  )>=0) { pitch_speed =  1; }
+            else if (header.indexOf("GET /wristDown")>=0) { pitch_speed = -1; }
+            else if (header.indexOf("GET /wStop"    )>=0) { pitch_speed =  0; }
 
             // Roll:
             else if (header.indexOf("GET /rollCW")>=0) { roll_speed =  1; }
@@ -165,7 +163,7 @@ void App_DataUpdate() {
               Speed_Start = header.indexOf('=');
               Speed_End   = header.indexOf('&');
               SpeedString = header.substring(Speed_Start+1, Speed_End);
-              Speed = map(SpeedString.toInt(), 0, 100, 0, 350); // 387
+              Speed = ((float_t)SpeedString.toInt())/100.0; // 0:100 -> 0:1
             }
             // else if() for receive Target_Position X & Y
             else { Serial.print(header); }
@@ -200,13 +198,14 @@ void Master_Setup(const char* ssid, const char* password) {
   Serial.print(F("Connecting to WiFi"));
   WiFi.mode(WIFI_AP_STA);     // Set the device as a Station and Soft Access Point simultaneously
   WiFi.begin(ssid, password); // Set device as a Wi-Fi Station
+  /*
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(100);
   }
   Serial.print("\nStation IP Address: ");   Serial.println(WiFi.localIP());
   Serial.print("Wi-Fi Channel: ");        Serial.println(WiFi.channel());
-
+  */
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
@@ -233,7 +232,7 @@ void Master_dataUpdate() {
   /* for slave 2:
   master2_data.roll_speed  = roll_speed;
   master2_data.grip_speed  = grip_speed;
-  master2_data.wrist_speed = wrist_speed;
+  master2_data.pitch_speed = pitch_speed;
   master2_data.armX        = armX;
   master2_data.armY        = armY;
   ESPNOW_Send(master_channel, Slave2_Address, (const uint8_t *)&master1_data, sizeof(master1_data));

@@ -60,8 +60,8 @@ void ROS_SendData() {
 void ROS_ReceiveData(){
   // Stop the car if there are no cmd_vel messages
   if((millis()/1000) - lastCmdVelReceived > 1) {
-    Required_LeftMotor_mms  = 0;
-    Required_RightMotor_mms = 0;
+    motors_linear  = 0;
+    motors_angular = 0;
   }
 }
 

@@ -98,17 +98,17 @@ Notes:
         #define SERVO_RGRIP  26
     
     // Stepper Motors:
-        #define SM_LINK1_STP     4
-        #define SM_LINK1_DIR    16
+        #define SM_LINK1_STP    4
+        #define SM_LINK1_DIR   16
 
-        #define SM_LINK2_STP    33
-        #define SM_LINK2_DIR    32
+        #define SM_LINK2_STP   33
+        #define SM_LINK2_DIR   32
 
-        #define SM_WRIST_STP    15
-        #define SM_WRIST_DIR    13
+        #define SM_LWRST_STP   15
+        #define SM_LWRST_DIR   13
 
-        #define SM_ROLL_STP     14
-        #define SM_ROLL_DIR     27
+        #define SM_RWRST_STP   14
+        #define SM_RWRST_DIR   27
     
     // Microstepping Pins:
         #define MS1             18
@@ -118,7 +118,7 @@ Notes:
     // Limit Switches:
         #define LS_LINK1        19
         #define LS_LINK2        21
-        #define LS_WRIST        22
+        #define LS_PITCH        22
         #define LS_ROLL         23
 
 

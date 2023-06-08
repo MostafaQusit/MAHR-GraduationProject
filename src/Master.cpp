@@ -1,27 +1,31 @@
 #include <Arduino.h>
 #include <MAHR.h>
 
-//#include <MAHR/Ultrasonics.h>
 #include <MAHR/COM/Master.h>
-//#include <MAHR/GSM.h>
+//#include <MAHR/PS4_Controller.h>
 #include <MAHR/ROS.h>
+//#include <MAHR/GSM.h>
+//#include <MAHR/Ultrasonics.h>
 
 void setup() {
   Serial.begin(115200);
   while(!Serial){}
 
-  Master_Setup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
   //GSM_Setup();
+  //PS4_Setup();
+  Master_Setup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
   ROS_Setup(57600);
 }
 
 void loop() {
   //Ultrasonics_DataUpdate();
   //Ultrasonics_ObstacleAvoid();
-  /* print data:
-  Serial.printf("10\t\tMotors: Speed(%4.0f,%4.0f)\n", Required_LeftMotor_mms, Required_RightMotor_mms);
-  */
+  // print data:
+  //Serial.printf("10\tMotors:  Speed = %3.2f,  linear = %3.2f,  angular = %3.2f\n", Speed, motors_linear, motors_angular);
+
   //GSM_CheckIncoming();
+  //PS4_DataUpdate();
+  //PS4_PrintData();
   ROS_SendData();
   ROS_ReceiveData();
   Master_dataUpdate();

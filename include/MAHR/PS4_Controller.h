@@ -11,10 +11,6 @@
 #define PRESS_DELAY_MS 20
 
 uint8_t battery = 0;
-float_t w, r, g, lsx, lsy;
-uint16_t amp, other;
-int16_t linearSpeed = 120;
-int16_t rotatiSpeed = 120;
 
 // Print all variables that PS4 Controller can update
 void PS4_PrintAll() {
@@ -41,46 +37,36 @@ void PS4_PrintAll() {
 }
 // make action for any required event in the PS4 Controller
 void notify(){
-  if     ( PS4.Up()    ) { Target_LeftMotor_mms= linearSpeed; Target_RightMotor_mms= linearSpeed; }
-  else if( PS4.Down()  ) { Target_LeftMotor_mms=-linearSpeed; Target_RightMotor_mms=-linearSpeed; }
-  else if( PS4.Right() ) { Target_LeftMotor_mms= rotatiSpeed; Target_RightMotor_mms=-rotatiSpeed; }
-  else if( PS4.Left()  ) { Target_LeftMotor_mms=-rotatiSpeed; Target_RightMotor_mms= rotatiSpeed; }
-  else                   { Target_LeftMotor_mms=           0; Target_RightMotor_mms=           0; }
-  /* control robot by analog
-  lsx = PS4.LStickX();
-  lsy = PS4.LStickY();
-  if( abs(lsx) < 17 && abs(lsy) < 17 ) {
-    Target_LeftMotor_mms = 0;
-    Target_RightMotor_mms = 0;
-  }
-  else {
-    if(lsy>=0) { amp = (uint16_t)  sqrtf(lsx*lsx+lsy*lsy); }
-    else       { amp = (uint16_t) -sqrtf(lsx*lsx+lsy*lsy); }
-    other = (uint16_t) lsy - abs(lsx);
+  if     (PS4.UpRight()  ) { armX =  1.0;  armY =  1.0; }
+  else if(PS4.UpLeft()   ) { armX = -1.0;  armY =  1.0; }
+  else if(PS4.DownRight()) { armX =  1.0;  armY = -1.0; }
+  else if(PS4.DownLeft() ) { armX = -1.0;  armY = -1.0; }
+  else if(PS4.Up()       ) { armX =  0.0;  armY =  1.0; }
+  else if(PS4.Down()     ) { armX =  0.0;  armY = -1.0; }
+  else if(PS4.Right()    ) { armX =  1.0;  armY =  0.0; }
+  else if(PS4.Left()     ) { armX = -1.0;  armY =  0.0; }
+  else                     { armX =  0.0;  armY =  0.0; }
 
-    amp   = map(amp,   -128, 128, -100, 100);
-    other = map(other, -128, 128, -100, 100);
+  motors_linear  =  ((float_t)PS4.LStickY())/128.0;
+  motors_angular = -((float_t)PS4.LStickX())/128.0;
+  if(abs(motors_linear )<0.1) { motors_linear  = 0.0; }
+  if(abs(motors_angular)<0.1) { motors_angular = 0.0; }
 
-    if(lsx >= 0) { Target_LeftMotor_mms=amp;   Target_RightMotor_mms=other; }
-    else         { Target_LeftMotor_mms=other; Target_RightMotor_mms=amp;   }
-  }
-  */
-  
-  if     ( PS4.Triangle() ) { zAxis_Speed =  1000; } //z = (zAxis_Speed==25)? 25: z+0.01; zAxis_Speed=(uint16_t)z; }
-  else if( PS4.Cross()    ) { zAxis_Speed = -1000; } //z = (zAxis_Speed== 0)?  0: z-0.01; zAxis_Speed=(uint16_t)z; }
+  if     ( PS4.Triangle() ) { zAxis_Speed =  1000; }
+  else if( PS4.Cross()    ) { zAxis_Speed = -1000; }
   else                      { zAxis_Speed =     0; }
 
-  if( PS4.Circle() ) { w = (wrist==90)? 90: w+0.03; wrist=(uint8_t)w; }
-  if( PS4.Square() ) { w = (wrist== 0)?  0: w-0.03; wrist=(uint8_t)w; }
+  if     ( PS4.Circle() ) { pitch_speed =  1.0; }
+  else if( PS4.Square() ) { pitch_speed = -1.0; }
+  else                    { pitch_speed =  0.0; }
 
-  if( PS4.R1() ) { r = (roll==180)? 180: r+0.06; roll=(uint8_t)r; }
-  if( PS4.L1() ) { r = (roll==  0)?   0: r-0.06; roll=(uint8_t)r; }
+  if     ( PS4.R1() ) { roll_speed =  1.0; }
+  else if( PS4.L1() ) { roll_speed = -1.0; }
+  else                { roll_speed =  0.0; }
 
-  if( PS4.R2() ) { g = (Grip==90)? 90: g+0.03; Grip=(uint8_t)g; }
-  if( PS4.L2() ) { g = (Grip== 0)?  0: g-0.03; Grip=(uint8_t)g; }
-
-  armX = map(PS4.RStickX(), -128, 127, -100, 100);
-  armY = map(PS4.RStickY(), -128, 127, -100, 100);
+  if     ( PS4.R2() ) { grip_speed =  1.0; }
+  else if( PS4.L2() ) { grip_speed = -1.0; }
+  else                { grip_speed =  0.0; }
 
   // PS4_PrintAll();
 }
@@ -108,11 +94,11 @@ void PS4_DataUpdate() {
 }
 // Print all variables that PS4 Controller can update
 void PS4_PrintData() {
-  Serial.printf("Speed(%4d,%4d)\tzAxis(%5d)\tArm(%4d,%4d)\troll(%4d)\twrist(%4d)\tGrip(%4d)\n",
-                Target_LeftMotor_mms, Target_RightMotor_mms,
+  Serial.printf("Speed(l:%4.2f,a:%4.2f)\tzAxis(%5d)\tArm(%2.0f,%2.0f)\troll(%2.0f)\tpitch(%2.0f)\tGrip(%2.0f)\n",
+                motors_linear, motors_angular,
                 zAxis_Speed,
                 armX, armY,
-                roll, wrist, Grip);
+                roll_speed, pitch_speed, grip_speed);
 }
 // use it if PS4 don't connect (remove all paired devices due to reach max number of attempts)
 void PS4_Reconnect() {
@@ -123,5 +109,4 @@ void PS4_Reconnect() {
     esp_bt_gap_remove_bond_device(pairedDeviceBtAddr[i]);
   }
 }
-
 #endif

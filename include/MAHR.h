@@ -2,6 +2,8 @@
 #define MAHR_H_
 
 #include <Arduino.h>
+#include <math.h>
+#include <stdio.h>
 #include <iostream>
 using namespace std;
 #include <MAHR/PinsList.h>
@@ -23,8 +25,8 @@ uint16_t voice_file;                                      // MP3::file number
 int32_t Target_PositionX, Target_PositionY;               // ROS::Target Position
 int32_t Current_PositionX, Current_PositionY;             // ROS::Current Position
 int16_t zAxis_Speed;                                      // Z-Axis Stepper::Speed in pulse/s
-float_t grip_speed, wrist_speed, roll_speed, armX, armY;  // Arm:: Position parameters
-
+float_t grip_speed, pitch_speed, roll_speed, armX, armY;  // Arm:: Position parameters
+/*
 template <int order> // order is 1 or 2
 class LowPass {
   private:
@@ -102,5 +104,5 @@ class LowPass {
       return y[0];
     }
 };
-
+*/
 #endif
