@@ -95,8 +95,8 @@ void Motors_RunSpeed() {
   // Check z-Axis State:
   if(true) {  // digitalRead(LOWER_LS)==HIGH
     // Acceleration & Speed Profile (like exp.):
-    LeftMotor_mmss  = ((float_t) (Required_LeftMotor_mms -LeftMotor_mms ))/30.0;
-    RightMotor_mmss = ((float_t) (Required_RightMotor_mms-RightMotor_mms))/30.0;
+    LeftMotor_mmss  = ((float_t) (Required_LeftMotor_mms -LeftMotor_mms ))/50.0;
+    RightMotor_mmss = ((float_t) (Required_RightMotor_mms-RightMotor_mms))/50.0;
     LeftMotor_mms  += LeftMotor_mmss;
     RightMotor_mms += RightMotor_mmss;
   }
@@ -122,8 +122,8 @@ void Motors_RunSpeed() {
   Rin_offset =  Required_LeftMotor_mms + Required_RightMotor_mms; // In (rotation point in  side robot) case [in progressing]
 
   // calcu. error difference:
-  if     (CurrState == ANGULAR) { diff = 6.0*((float_t)(RightEncoder_CurrDistance + LeftEncoder_CurrDistance + Rin_offset )); }
-  else if(CurrState == LINEAR ) { diff = 6.0*((float_t)(RightEncoder_CurrDistance - LeftEncoder_CurrDistance + Rout_offset)); }
+  if     (CurrState == ANGULAR) { diff = 6.5*((float_t)(RightEncoder_CurrDistance + LeftEncoder_CurrDistance + Rin_offset )); }
+  else if(CurrState == LINEAR ) { diff = 6.5*((float_t)(RightEncoder_CurrDistance - LeftEncoder_CurrDistance + Rout_offset)); }
   else                          { diff = 0.0; }
   
   // convert motor-speed from mm/s to RPM:
@@ -134,12 +134,8 @@ void Motors_RunSpeed() {
   float_t RightMotor_Volt = RightMotor_RPM * 255.0/69.0;
   float_t LeftMotor_Volt  = LeftMotor_RPM  * 255.0/69.0;
 
-  // from (0:255) to (0 & 60:255)
-  if(RightMotor_Volt>0 && RightMotor_Volt<60) { RightMotor_Volt = 60; }
-  if( LeftMotor_Volt>0 &&  LeftMotor_Volt<60) {  LeftMotor_Volt = 60; } 
-
-  motorR.setSpeed((int16_t) round(RightMotor_Volt));
-  motorL.setSpeed((int16_t) round(LeftMotor_Volt ));
+  motorR.setSpeed((int16_t) ( /*(abs(RightMotor_Volt)<90)? 0 :*/ round(RightMotor_Volt) ));
+  motorL.setSpeed((int16_t) ( /*(abs(LeftMotor_Volt )<90)? 0 :*/ round(LeftMotor_Volt ) ));
 
   PrevState = CurrState;
 }

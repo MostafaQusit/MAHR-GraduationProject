@@ -47,10 +47,10 @@ void notify(){
   else if(PS4.Left()     ) { armX = -1.0;  armY =  0.0; }
   else                     { armX =  0.0;  armY =  0.0; }
 
-  motors_linear  =  ((float_t)PS4.LStickY())/128.0;
-  motors_angular = -((float_t)PS4.LStickX())/128.0;
-  if(abs(motors_linear )<0.1) { motors_linear  = 0.0; }
-  if(abs(motors_angular)<0.1) { motors_angular = 0.0; }
+  motors_linear  =  ((float_t)PS4.LStickY())/(128.0);
+  motors_angular = -((float_t)PS4.RStickX())/(128.0);
+  if(abs(motors_linear )<0.2) { motors_linear  = 0.0; }
+  if(abs(motors_angular)<0.2) { motors_angular = 0.0; }
 
   if     ( PS4.Triangle() ) { zAxis_Speed =  1000; }
   else if( PS4.Cross()    ) { zAxis_Speed = -1000; }
@@ -71,18 +71,30 @@ void notify(){
   // PS4_PrintAll();
 }
 void onConnect()    {Serial.println(F("PS4 Controller is Connected.   "));}
-void onDisconnect() {Serial.println(F("PS4 Controller is Disconnected."));}
+void onDisconnect() {
+  motors_angular = 0;
+  motors_linear  = 0;
+  armX = 0;
+  armY = 0;
+  pitch_speed = 0;
+  roll_speed  = 0;
+  grip_speed  = 0;
+  Serial.println(F("PS4 Controller is Disconnected."));
+}
 
 // PS4 Initialization
 void PS4_Setup() {
   PS4.begin("e8:9e:b4:e2:e4:1c");
-  PS4.attach(notify);
+  //PS4.attach(notify);
   PS4.attachOnConnect(onConnect);
   PS4.attachOnDisconnect(onDisconnect);
 }
 // Check if any required event (that not in handler function) happen
 void PS4_DataUpdate() {
-  //------ Digital cross/square/triangle/circle buttons ------
+  if(PS4.isConnected()){
+    notify();
+  }
+  /*------ Digital cross/square/triangle/circle buttons ------
   if(PS4.data.button.cross    && PS4.data.button.down   ) {Serial.println(F("Pressing both the down     & cross     buttons"));}
   if(PS4.data.button.square   && PS4.data.button.left   ) {Serial.println(F("Pressing both the square   & left      buttons"));}
   if(PS4.data.button.triangle && PS4.data.button.up     ) {Serial.println(F("Pressing both the triangle & up        buttons"));}
@@ -91,6 +103,7 @@ void PS4_DataUpdate() {
   if(PS4.data.button.l2       && PS4.data.button.r2     ) {Serial.println(F("Pressing both the left     & R.trigger buttons"));}
   if(PS4.data.button.l3       && PS4.data.button.r3     ) {Serial.println(F("Pressing both the left     & R.stick   buttons"));}
   if(PS4.data.button.share    && PS4.data.button.options) {Serial.println(F("Pressing both the share    & options   buttons"));}
+  */
 }
 // Print all variables that PS4 Controller can update
 void PS4_PrintData() {

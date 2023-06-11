@@ -2,8 +2,7 @@
 #include <MAHR.h>
 
 #include <MAHR/COM/Master.h>
-//#include <MAHR/PS4_Controller.h>
-#include <MAHR/ROS.h>
+#include <MAHR/PS4_Controller.h>
 //#include <MAHR/GSM.h>
 //#include <MAHR/Ultrasonics.h>
 
@@ -13,8 +12,8 @@ void setup() {
 
   //GSM_Setup();
   //PS4_Setup();
-  Master_Setup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
-  ROS_Setup(57600);
+  Master_Setup("Koset", "h9f16306"); // ("WE_F6AE4C", "lcw04660");
+  //PS4_Reconnect();
 }
 
 void loop() {
@@ -26,7 +25,6 @@ void loop() {
   //GSM_CheckIncoming();
   //PS4_DataUpdate();
   //PS4_PrintData();
-  ROS_SendData();
-  ROS_ReceiveData();
+  //App_DataUpdate();
   Master_dataUpdate();
 }

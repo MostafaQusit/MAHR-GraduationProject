@@ -7,7 +7,6 @@
 master2_msgs master2_data;
 
 // MAC Addresses of the receivers
-uint8_t Master_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8};
 int32_t slave2_channel;
 
 void Slave2_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {  

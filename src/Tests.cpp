@@ -3,6 +3,7 @@
 
 //#define TEST1
 #define TEST2
+//#define TEST3
 
 #ifdef TEST1
 #include <WiFi.h>
@@ -48,10 +49,10 @@ void loop(){
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
 
-const char* ssid = "WE_F6AE4C";
-const char* password = "lcw04660";
+const char* ssid = "Koset"; // "WE_F6AE4C";
+const char* password = "h9f16306"; // "lcw04660";
 
-IPAddress local_IP(192, 168, 1, 186); // Set your Static  IP address
+IPAddress local_IP(192, 168, 1, 184); // Set your Static  IP address
 IPAddress gateway(192, 168, 1, 1);    // Set your Gateway IP address
 IPAddress subnet(255, 255, 0, 0);
 
@@ -90,4 +91,18 @@ void setup(void) {
 
 void loop(void) {
 }
+#endif
+
+#ifdef TEST3
+
+#include <MAHR/PS4_Controller.h>
+void setup() {
+  Serial.begin(115200);
+  PS4_Setup();
+}
+
+void loop() {
+  PS4_PrintData();
+}
+
 #endif

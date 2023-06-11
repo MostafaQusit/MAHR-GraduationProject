@@ -4,11 +4,13 @@
 #include <MAHR.h>
 #include <MAHR/COM.h>
 
+#define LINEAR_LIMIT  0.60
+#define ANGULAR_LIMIT (LINEAR_LIMIT*2.0)
+
 master1_msgs master1_data;
 slave1_msgs slave1_data;
 
 // MAC Addresses of the receivers
-uint8_t Master_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8};
 int32_t slave1_channel;
 
 void Slave1_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {  
@@ -16,14 +18,33 @@ void Slave1_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int
     memcpy(&master1_data, incomingData, sizeof(master1_data));
     motors_linear  = master1_data.linear;
     motors_angular = master1_data.angular;
-    Required_LeftMotor_mms  = 300.0 * (motors_linear + motors_angular/2.0);
-    Required_RightMotor_mms = 300.0 * (motors_linear - motors_angular/2.0);
-    /* Offset:
-    if(Required_LeftMotor_mms >= 0)  { Required_LeftMotor_mms  += 50.0; }
-    else                             { Required_LeftMotor_mms  -= 50.0; }
-    if(Required_RightMotor_mms >=0 ) { Required_RightMotor_mms += 50.0; }
-    else                             { Required_RightMotor_mms -= 50.0; }
+
+    // linear & angular Range:
+    if(motors_linear >0 && motors_linear <  LINEAR_LIMIT) { motors_linear  =   LINEAR_LIMIT; }
+    if(motors_linear <0 && motors_linear >- LINEAR_LIMIT) { motors_linear  = - LINEAR_LIMIT; }
+
+    //if(motors_angular>0 && motors_angular< ANGULAR_LIMIT) { motors_angular =  ANGULAR_LIMIT; }
+    //if(motors_angular<0 && motors_angular>-ANGULAR_LIMIT) { motors_angular = -ANGULAR_LIMIT; }
+
+    if     (motors_angular> 0.2 || (abs(master1_data.linear)<0.1 && motors_angular>0.0)) { motors_angular =  0.60;  motors_linear  = 0.00; }
+    else if(motors_angular<-0.2 || (abs(master1_data.linear)<0.1 && motors_angular<0.0)) { motors_angular = -0.60;  motors_linear  = 0.00; }
+    else                                                                                 { motors_angular =  0.00; }
+    Required_LeftMotor_mms  = 300.0 * (motors_linear - motors_angular);
+    Required_RightMotor_mms = 300.0 * (motors_linear + motors_angular);
+
+    /* from abs(0:300) to abs(0 & 90:300)
+    if(Required_RightMotor_mms>0 && Required_RightMotor_mms< 90) { Required_RightMotor_mms =  90; }
+    if(Required_RightMotor_mms<0 && Required_RightMotor_mms>-90) { Required_RightMotor_mms = -90; }
+
+    if( Required_LeftMotor_mms>0 &&  Required_LeftMotor_mms< 90) {  Required_LeftMotor_mms =  90; }
+    if( Required_LeftMotor_mms<0 &&  Required_LeftMotor_mms>-90) {  Required_LeftMotor_mms = -90; }
     */
+    // Offset:
+    //if(Required_LeftMotor_mms  > 0) { Required_LeftMotor_mms  += 60.0; }
+    //else                            { Required_LeftMotor_mms  -= 60.0; }
+    //if(Required_RightMotor_mms > 0) { Required_RightMotor_mms += 60.0; }
+    //else                            { Required_RightMotor_mms -= 60.0; }
+    
     zAxis_Speed = master1_data.zSpeed;
     voice_file = master1_data.vFile;
   }
