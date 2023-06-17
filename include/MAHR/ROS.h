@@ -5,63 +5,72 @@
 #include <ros.h>
 #include <ros/time.h>
 #include <std_msgs/Int16.h>
-#include <geometry_msgs/Vector3.h>
-//#include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Twist.h>
 
-ros::NodeHandle nh;
+ros::NodeHandle nh; // Node Handler Object
 
-  // Publishers:
-//geometry_msgs::Quaternion q;
-std_msgs::Int16 RightEnc, LeftEnc;
+std_msgs::Int16 RightEnc; // Right Encoder message
+std_msgs::Int16 LeftEnc;  // Left  Encoder message
 
-//ros::Publisher quat_pub("quaternion", &q);
-ros::Publisher RightEncoder_pub("/right_ticks", &RightEnc);
-ros::Publisher LeftEncoder_pub("/left_ticks", &LeftEnc);
-double lastCmdVelReceived = 0;
+// Publishers:
+ros::Publisher RightEncoder_pub("/right_ticks", &RightEnc); // Right Encoder Publisher 
+ros::Publisher  LeftEncoder_pub("/left_ticks" , & LeftEnc); // Left  Encoder Publisher
 
-  // Subscribers:
+double lastCmdVelReceived;  // last time velocity command (cmdVel) has send any changes in (sec)
+
+/**
+ * @brief   call-back function when receive velocity command
+ * 
+ * @param   cmd_msg   command message
+ */
 void Motors(const geometry_msgs::Twist &cmd_msg) {
-  // Record timestamp of last velocity command received
-  lastCmdVelReceived = (millis() / 1000);
+  lastCmdVelReceived = (millis() / 1000); // record the time
   motors_linear  = cmd_msg.linear.x;
   motors_angular = cmd_msg.angular.z;
 }
-ros::Subscriber<geometry_msgs::Twist> Motors_sub("cmd_vel", Motors);
 
-// ROS Initialization
+// Subscribers:
+ros::Subscriber<geometry_msgs::Twist> Motors_sub("cmd_vel", Motors);  // Motors Subscriber
+
+/**
+ * @brief   ROS Setup
+ * 
+ * @param   BaudRate    Baud Rate of ROS Serial Communication
+ */
 void ROS_Setup(int32_t BaudRate) {
-  nh.getHardware()->setBaud(BaudRate);
-  nh.initNode();
+  nh.getHardware()->setBaud(BaudRate);  // set the Baud Rate
+  nh.initNode();                        // Node Init.
 
-  //nh.advertise(quat_pub);
-  nh.advertise(RightEncoder_pub);
-  nh.advertise(LeftEncoder_pub);
+  nh.advertise(RightEncoder_pub); // Right Encoder Publisher Setup (Advertise)
+  nh.advertise(LeftEncoder_pub);  // left  Encoder Publisher Setup (Advertise)
 
-  nh.subscribe(Motors_sub);
+  nh.subscribe(Motors_sub); // Motors Subscriber Setup
 }
-// Send the sensory data to ROS
+
+/**
+ * @brief   Send the sensory data (Encoders Reading) to ROS
+ */
 void ROS_SendData() {
   delay(30);
   nh.spinOnce();
-
-  // IMU:
-  //q.x = quaternion[0];
-  //q.y = quaternion[1];
-  //q.z = quaternion[2];
-  //q.w = quaternion[3];
-  //quat_pub.publish(&q);
   
-  // Encoders:
-  RightEnc.data = RightEncoder_Distance;    RightEncoder_pub.publish(&RightEnc);
-  LeftEnc.data  = LeftEncoder_Distance;     LeftEncoder_pub.publish(&LeftEnc);    
+  // Update Encoders message:
+  RightEnc.data = RightEncoder_Distance;
+  LeftEnc.data  = LeftEncoder_Distance;
+
+  // Publish the Encoders message to ROS:
+  RightEncoder_pub.publish(&RightEnc);
+  LeftEncoder_pub.publish(&LeftEnc);
 }
-// receive control action from ROS
-void ROS_ReceiveData(){
-  // Stop the car if there are no cmd_vel messages
+
+/**
+ * @brief   check if there incoming messages or not
+ */
+void ROS_CheckIncoming(){
+  // Stop the robot if there are no cmdVel messages
   if((millis()/1000) - lastCmdVelReceived > 1) {
-    motors_linear  = 0;
-    motors_angular = 0;
+    motors_linear  = 0.0;
+    motors_angular = 0.0;
   }
 }
 

@@ -5,30 +5,65 @@
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
-using namespace std;
+#include <BluetoothSerial.h>
 #include <MAHR/PinsList.h>
+using namespace std;
 
-#define WHEEL_BASE_MM   374.2
-#define WHEEL_RADIUS_MM  54.0
+BluetoothSerial SerialBT;   // Serial Bluetooth Object
 
-int64_t RightEncoder_Distance, LeftEncoder_Distance;      // Encoders::Distance in degrees
+#define WHEEL_BASE_MM   374.2   // Robot's Wheel Base in (mm)
+#define WHEEL_RADIUS_MM  54.0   // Robot's Radius in (mm)
 
-float_t accelerometer[3], gyroscope[3], magnometer[3];    // IMU::9-axis reading data (0,1,2 = x,y,z)
-float_t quaternion[4];                                    // IMU::QuaternionFilter Values (0,1,2,3 = x,y,z,w)
-float_t Yaw_angle, Pitch_angle, Roll_angle;               // IMU::3-Main Angles
+#define AUTONO_MODE   0   // Autonomous Mode
+#define MANUAL_MODE   1   // Manual(RC) Mode
 
-uint32_t ultrasonics[4];                                  // Ultrasonics::Distance in cm
-float_t Required_RightMotor_mms, Required_LeftMotor_mms;  // Motors::Speed in mm/s
-float_t motors_linear, motors_angular;
+uint8_t robot_mode = AUTONO_MODE;   // Robot Mode
 
-uint16_t voice_file;                                      // MP3::file number
-int32_t Target_PositionX, Target_PositionY;               // ROS::Target Position
-int32_t Current_PositionX, Current_PositionY;             // ROS::Current Position
-int16_t zAxis_Speed;                                      // Z-Axis Stepper::Speed in pulse/s
-float_t grip_speed, pitch_speed, roll_speed, armX, armY;  // Arm:: Position parameters
-/*
+// Encoders:
+int64_t RightEncoder_Distance;    // Right Encoder: Travelling Distance in (degrees)
+int64_t LeftEncoder_Distance;     //  Left Encoder: Travelling Distance in (degrees)
+
+// IMU:
+float_t accelerometer[3];   // IMU: Accelerometer data array [0,1,2 = x,y,z]
+float_t gyroscope[3];       // IMU: Gyroscope     data array [0,1,2 = x,y,z]
+float_t magnometer[3];      // IMU: Magnometer    data array [0,1,2 = x,y,z]
+float_t quaternion[4];      // IMU: Quaternion    data array [0,1,2,3 = x,y,z,w]
+float_t Yaw_angle;          // IMU: Yaw   Angle
+float_t Pitch_angle;        // IMU: Pitch Angle
+float_t Roll_angle;         // IMU: Roll  Angle
+
+// Ultrasonics:
+uint32_t ultrasonics[4];    // Ultrasonics: Distance in (cm)
+
+// DC Motors
+float_t Required_RightMotor_mms;  // Right Motor: linear speed in (mm/s)
+float_t Required_LeftMotor_mms;   //  Left Motor: linear speed in (mm/s)
+float_t motors_linear;    // Motors:  linear vector [0~1] (presentage)
+float_t motors_angular;   // Motors: angular vector [0~1] (presentage)
+
+// MP3:
+uint16_t voice_file;    // MP3: file number [1~255]
+
+// ROS:
+int32_t Target_PositionX;   // ROS: Target Position in X-axis
+int32_t Target_PositionY;   // ROS: Target Position in Y-axis
+
+int32_t Current_PositionX;   // ROS: Current Position in X-axis
+int32_t Current_PositionY;   // ROS: Current Position in Y-axis
+
+// Z-Axis Stepper:
+float_t zAxis_direction; // Z-Axis Stepper: speed in (pulse/s)
+
+// Arm:
+float_t armX_direction;   // Arm: End-Effector planer speed in X-axis
+float_t armY_direction;   // Arm: End-Effector planer speed in Y-axis
+float_t pitch_direction;  // Arm: Pitch joint speed
+float_t roll_direction;   // Arm: Roll  joint speed
+float_t grip_direction;   // Arm: Grip  joint speed
+
+// Filters
 template <int order> // order is 1 or 2
-class LowPass {
+class LowPass { // Low Pass Filter
   private:
     float a[order];
     float b[order+1];
@@ -39,13 +74,16 @@ class LowPass {
     float x[order+1]; // Raw values
     float y[order+1]; // Filtered values
 
-  public:  
-    LowPass(float f0, float fs, bool adaptive){
-      // f0: cutoff frequency (Hz)
-      // fs: sample frequency (Hz)
-      // adaptive: boolean flag, if set to 1, the code will automatically set
-      // the sample frequency based on the time history.
-      
+  public:
+    /**
+      * @brief  Low-Pass filter Constructor
+      *
+      * @param  f0   cutoff frequency (Hz)
+      * @param  fs   sample frequency (Hz)
+      * @param  f0   boolean flag, if set to true(1), the code will automatically set
+                     the sample frequency based on the time history
+    */
+    LowPass(float f0, float fs, bool adaptive=0){      
       omega0 = 6.28318530718*f0;
       dt = 1.0/fs;
       adapt = adaptive;
@@ -56,6 +94,10 @@ class LowPass {
       }
       setCoef();
     }
+    
+    /**
+      * @brief  set the coefficients
+    */
     void setCoef(){
       if(adapt){
         float t = micros()/1.0e6;
@@ -80,9 +122,15 @@ class LowPass {
         a[1] = -(beta[0]*alphaSq - 2*beta[1]*alpha + 4*beta[2])/D;      
       }
     }
+    
+    /**
+      * @brief  filtering the data
+      * 
+      * @param  xn  the current raw data
+      * 
+      * @return the current filtered data 
+    */
     float filt(float xn){
-      // Provide me with the current raw value: x
-      // I will give you the current filtered value: y
       if(adapt){
         setCoef(); // Update coefficients if necessary      
       }
@@ -104,5 +152,5 @@ class LowPass {
       return y[0];
     }
 };
-*/
+
 #endif
