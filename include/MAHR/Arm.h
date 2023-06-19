@@ -172,6 +172,8 @@ void Arm_RunToPosition(){
     grip_angle  = constrain(grip_angle , 0, PI);
     
     // Apply any ratios between motors and joints: (map function)
+    link1_angle *= 9;
+    link2_angle *= 9;
     pitch_angle *= 3;
     roll_angle  *= 6;
 
@@ -181,8 +183,11 @@ void Arm_RunToPosition(){
     lwrst.moveTo((long)((pitch_angle+roll_angle)/(2.0*PI) * STEPPER_PPR));
     rwrst.moveTo((long)((pitch_angle-roll_angle)/(2.0*PI) * STEPPER_PPR));
 
-    // Control action:
-    while( link1.run() && link2.run() && lwrst.run() && rwrst.run() );  // simultaneous motion
+    // Control action:  simultaneous motion
+    link1.run();
+    link2.run();
+    lwrst.run();
+    rwrst.run();
     lGrip.write(grip_angle);
     rGrip.write(grip_angle);
 }

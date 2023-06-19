@@ -5,11 +5,11 @@
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
-#include <BluetoothSerial.h>
+//#include <BluetoothSerial.h>
 #include <MAHR/PinsList.h>
 using namespace std;
 
-BluetoothSerial SerialBT;   // Serial Bluetooth Object
+//BluetoothSerial SerialBT;   // Serial Bluetooth Object
 
 #define WHEEL_BASE_MM   374.2   // Robot's Wheel Base in (mm)
 #define WHEEL_RADIUS_MM  54.0   // Robot's Radius in (mm)

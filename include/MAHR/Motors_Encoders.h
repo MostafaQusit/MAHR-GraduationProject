@@ -32,8 +32,9 @@ ESP32Encoder RightEncoder(true, RightEncoder_cb);             // ESP32Encoder ob
 ESP32Encoder LeftEncoder (true, LeftEncoder_cb );             // ESP32Encoder object for Left Encoder.
 
 // Encoders Speed parameters:
-long previousMillis;                // time in previous iteration in (sec) for speed update rate
-double previous_time;               // time in previous iteration in (sec) for speed calculation
+unsigned long PreviousMillis;       // time in previous iteration in (mS)  for counter resetting
+unsigned long previousMillis;       // time in previous iteration in (mS)  for speed update rate
+unsigned long previous_time;        // time in previous iteration in (sec) for speed calculation
 float_t RightEncoder_degs;          // right Encoder speed in (deg/s)
 float_t LeftEncoder_degs;           // left  Encoder speed in (deg/s)
 float_t RightEncoder_mms;           // right Encoder speed in (mm/s)
@@ -92,6 +93,13 @@ void Encoders_Setup() {
  * @brief   Update Encoder Position and Speed
  */
 void Encoders_DataUpdate(){
+  // Resetting the counters if the robot does not move for a while
+  if(LeftMotor_mms==0 && RightMotor_mms==0 && (millis()-PreviousMillis)>=3000){
+    RightEncoder.clearCount();
+    LeftEncoder.clearCount();
+    PreviousMillis = millis();
+  }
+
   // Position Calculation:
   RightEncoder_Distance = -RightEncoder.getCount();
   LeftEncoder_Distance  = -LeftEncoder.getCount();
@@ -110,7 +118,7 @@ void Encoders_DataUpdate(){
     // convert from (deg/s) to (mm/s)
     RightEncoder_mms = RightEncoder_degs * (PI/180.0)*WHEEL_RADIUS_MM;
     LeftEncoder_mms  = LeftEncoder_degs  * (PI/180.0)*WHEEL_RADIUS_MM;
-
+      
     previousMillis = millis();  // record the time
   }
 }
@@ -120,7 +128,7 @@ void Encoders_DataUpdate(){
  */
 void Motors_RunSpeed() {
   // Check z-Axis State: move only if it in BOTTOM position
-  if(digitalRead(LOWER_LS)==HIGH) {
+  if(true) {  //digitalRead(LOWER_LS)==HIGH
     // Acceleration & Speed Profile (like exp.):
     LeftMotor_mmss  = (Required_LeftMotor_mms -LeftMotor_mms )/30.0;
     RightMotor_mmss = (Required_RightMotor_mms-RightMotor_mms)/30.0;
@@ -173,13 +181,13 @@ void Motors_RunSpeed() {
  * @brief   Print Motors Speed, Encoders Position and Speed
  */
 void MotorsEncoders_PrintData() {
-  Serial.printf("Motors: Speed(%6.2f,%6.2f)\t\tEncoders: Position(%8lld,%8lld)deg\tSpeed(%10.0f,%10.0f)deg\n",
+  Serial.printf("Motors: Speed(l:%3.2f, a:%3.2f) -> (%6.2f,%6.2f)\t\tEncoders: Position(%8lld,%8lld)deg\n",
+                motors_linear,
+                motors_angular,
                 LeftMotor_mms,
                 RightMotor_mms,
                 LeftEncoder_Distance,
-                RightEncoder_Distance,
-                LeftEncoder_mms,
-                RightEncoder_mms);
+                RightEncoder_Distance);
 }
 
 #endif

@@ -14,5 +14,5 @@ void setup() {
 
 void loop() {
   Slave2_DataUpdate();
-  Arm_run();
+  Arm_RunToPosition();
 }

@@ -11,7 +11,7 @@ void setup() {
   while(!Serial){}
 
   COM_Slave1Setup("WE_F6AE4C");
-  zAxis_Setup(1000, 2000);
+  //zAxis_Setup(1000, 2000);
   Encoders_Setup();
   //Mp3_Setup();
 }
@@ -22,6 +22,6 @@ void loop() {
   //Serial.print(zAxis_Speed);  Serial.print("\t");
   MotorsEncoders_PrintData();
   Motors_RunSpeed();   
-  zAxis_RunSpeed();
+  //zAxis_RunSpeed();
   //Mp3_StateUpdate();
 }

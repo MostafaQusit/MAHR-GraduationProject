@@ -3,6 +3,10 @@
 
 #include <MAHR.h>
 #include <PS4Controller.h>
+#include "esp_bt_main.h"
+#include "esp_bt_device.h"
+#include "esp_gap_bt_api.h"
+#include "esp_err.h"
 
 /** if PS4 don't connect, this one of two reasons:
  *    1. the ESP32 reach max. number of attempts with devices
@@ -16,6 +20,7 @@
  *                           holding on BOOT/FLASH Button and release it when the Erasing process begins
  */
 
+
 /**
  * @brief   remove all paired devices due to reach max number of attempts
  */
@@ -23,9 +28,12 @@ void Remove_AllPairedDevice() {
   uint8_t pairedDeviceBtAddr[20][6];
   int32_t count = esp_bt_gap_get_bond_device_num();
   esp_bt_gap_get_bond_device_list(&count, pairedDeviceBtAddr);
-  for(uint8_t i=0; i<count; i++) {
+  Serial.print("remove bond device");
+  for(int32_t i=0; i<count; i++) {
     esp_bt_gap_remove_bond_device(pairedDeviceBtAddr[i]);
+    Serial.print(".");
   }
+  Serial.println("\nFinish");
 }
 
 /**
@@ -58,57 +66,10 @@ void PS4_AutonoMode() {
 }
 
 /**
- * @brief   call-back function when any event happen in the PS4 Controller
- */
-void notify(){
-  // End-Effector planer linear speed in XY axises
-  if     (PS4.UpRight()  ) { armX_direction =  1.0;  armY_direction =  1.0; }
-  else if(PS4.UpLeft()   ) { armX_direction = -1.0;  armY_direction =  1.0; }
-  else if(PS4.DownRight()) { armX_direction =  1.0;  armY_direction = -1.0; }
-  else if(PS4.DownLeft() ) { armX_direction = -1.0;  armY_direction = -1.0; }
-  else if(PS4.Up()       ) { armX_direction =  0.0;  armY_direction =  1.0; }
-  else if(PS4.Down()     ) { armX_direction =  0.0;  armY_direction = -1.0; }
-  else if(PS4.Right()    ) { armX_direction =  1.0;  armY_direction =  0.0; }
-  else if(PS4.Left()     ) { armX_direction = -1.0;  armY_direction =  0.0; }
-  else                     { armX_direction =  0.0;  armY_direction =  0.0; }
-
-  // Robot motion speed:
-  motors_linear  =  ((float_t)PS4.LStickY())/(128.0)*0.45;
-  motors_angular = -((float_t)PS4.RStickX())/(128.0)*0.35;
-  if(abs(motors_linear )<0.2) { motors_linear  = 0.0; }
-  if(abs(motors_angular)<0.2) { motors_angular = 0.0; }
-
-  // Z-Axis Stepper Speed
-  if     ( PS4.Triangle() ) { zAxis_direction =  1; }
-  else if( PS4.Cross()    ) { zAxis_direction = -1; }
-  else                      { zAxis_direction =  0; }
-
-  // Arm: pitch speed
-  if     ( PS4.Circle() ) { pitch_direction =  1.0; }
-  else if( PS4.Square() ) { pitch_direction = -1.0; }
-  else                    { pitch_direction =  0.0; }
-
-  // Arm: roll speed
-  if     ( PS4.R1() ) { roll_direction =  1.0; }
-  else if( PS4.L1() ) { roll_direction = -1.0; }
-  else                { roll_direction =  0.0; }
-
-  // Arm: grip speed
-  if     ( PS4.R2() ) { grip_direction =  1.0; }
-  else if( PS4.L2() ) { grip_direction = -1.0; }
-  else                { grip_direction =  0.0; }
-
-  // change robot mode and PS4-Led accordingly
-  if( PS4.Options() ) { PS4_ManualMode(); }
-  if( PS4.Share()   ) { PS4_AutonoMode(); }
-}
-
-/**
  * @brief   PS4 Setup
  */
 void PS4_Setup() {
   PS4.begin("e8:9e:b4:e2:e4:1c");
-  PS4.attach(notify);
   PS4.attachOnConnect(PS4_ManualMode);
   PS4.attachOnDisconnect(PS4_AutonoMode);
 }
@@ -119,15 +80,55 @@ void PS4_Setup() {
  * @attention   that not in handler function
  */
 void PS4_DataUpdate() {
-  //------ Digital cross/square/triangle/circle buttons ------
-  if(PS4.data.button.cross    && PS4.data.button.down   ) {Serial.println(F("Pressing both the down     & cross     buttons"));}
-  if(PS4.data.button.square   && PS4.data.button.left   ) {Serial.println(F("Pressing both the square   & left      buttons"));}
-  if(PS4.data.button.triangle && PS4.data.button.up     ) {Serial.println(F("Pressing both the triangle & up        buttons"));}
-  if(PS4.data.button.circle   && PS4.data.button.right  ) {Serial.println(F("Pressing both the circle   & right     buttons"));}
-  if(PS4.data.button.l1       && PS4.data.button.r1     ) {Serial.println(F("Pressing both the left     & R.bumper  buttons"));}
-  if(PS4.data.button.l2       && PS4.data.button.r2     ) {Serial.println(F("Pressing both the left     & R.trigger buttons"));}
-  if(PS4.data.button.l3       && PS4.data.button.r3     ) {Serial.println(F("Pressing both the left     & R.stick   buttons"));}
-  if(PS4.data.button.share    && PS4.data.button.options) {Serial.println(F("Pressing both the share    & options   buttons"));}
+  if(PS4.isConnected()){
+    // End-Effector planer linear speed in XY axises
+    if     (PS4.UpRight()  ) { armX_direction =  1.0;  armY_direction =  1.0; }
+    else if(PS4.UpLeft()   ) { armX_direction = -1.0;  armY_direction =  1.0; }
+    else if(PS4.DownRight()) { armX_direction =  1.0;  armY_direction = -1.0; }
+    else if(PS4.DownLeft() ) { armX_direction = -1.0;  armY_direction = -1.0; }
+    else if(PS4.Up()       ) { armX_direction =  0.0;  armY_direction =  1.0; }
+    else if(PS4.Down()     ) { armX_direction =  0.0;  armY_direction = -1.0; }
+    else if(PS4.Right()    ) { armX_direction =  1.0;  armY_direction =  0.0; }
+    else if(PS4.Left()     ) { armX_direction = -1.0;  armY_direction =  0.0; }
+    else                     { armX_direction =  0.0;  armY_direction =  0.0; }
+
+    // Robot motion speed:
+    motors_linear  =  ((float_t)PS4.LStickY())/(128.0);
+    motors_angular = -((float_t)PS4.RStickX())/(128.0);
+    if(abs(motors_linear )<0.2) { motors_linear  = 0.0; }
+    if(abs(motors_angular)<0.2) { motors_angular = 0.0; }
+
+    // Z-Axis Stepper Speed
+    if     ( PS4.Triangle() ) { zAxis_direction =  1; }
+    else if( PS4.Cross()    ) { zAxis_direction = -1; }
+    else                      { zAxis_direction =  0; }
+
+    // Arm: pitch speed
+    if     ( PS4.Circle() ) { pitch_direction =  1.0; }
+    else if( PS4.Square() ) { pitch_direction = -1.0; }
+    else                    { pitch_direction =  0.0; }
+
+    // Arm: roll speed
+    if     ( PS4.R1() ) { roll_direction =  1.0; }
+    else if( PS4.L1() ) { roll_direction = -1.0; }
+    else                { roll_direction =  0.0; }
+
+    // Arm: grip speed
+    if     ( PS4.R2() ) { grip_direction =  1.0; }
+    else if( PS4.L2() ) { grip_direction = -1.0; }
+    else                { grip_direction =  0.0; }
+  }
+}
+
+/**
+ * @brief   update modes by PS4 command(options=Manual, share=autonomous)
+ */
+void PS4_ModeUpdate(){
+  if(PS4.isConnected()){
+     // change robot mode and PS4-Led accordingly
+    if( PS4.Options() ) { PS4_ManualMode(); }
+    if( PS4.Share()   ) { PS4_AutonoMode(); }
+  }
 }
 
 /**

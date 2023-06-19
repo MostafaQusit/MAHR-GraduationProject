@@ -183,17 +183,17 @@ void COM_MasterSetup(const char* ssid, const char* password) {
 
   // Connect to the Network:
   WiFi.begin(ssid, password);
-  Serial.print(F("Connecting to WiFi"));
-  while (WiFi.status() != WL_CONNECTED) { // Check if connected or still not:
-    Serial.print(".");
-    delay(100);
-  }
+  //Serial.print(F("Connecting to WiFi"));
+  //while (WiFi.status() != WL_CONNECTED) { // Check if connected or still not:
+  //  Serial.print(".");
+  //  delay(100);
+  //}
   Serial.print("\nStation IP Address: ");
   Serial.println(WiFi.localIP());
   
   // Get WiFi Channel:
   Serial.print("Wi-Fi Channel: ");          Serial.print(WiFi.channel());
-  master_channel = getWiFiChannel(ssid);    Serial.println(master_channel);
+  //master_channel = getWiFiChannel(ssid);    Serial.println(master_channel);
 
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
@@ -213,8 +213,9 @@ void COM_MasterUpdate() {
   Server_Update();
 
   // if any change happen in the sending variables, send the new values to others:
-  if(master1_data.linear!=motors_linear || master1_data.angular!=motors_angular ||
-     master1_data.zDir!=zAxis_direction || master1_data.vFile!=voice_file){
+  if(master1_data.linear != motors_linear   || master1_data.angular != motors_angular ||
+     master1_data.zDir   != zAxis_direction || master1_data.vFile   != voice_file     ||
+     master1_data.mode != robot_mode){
       
       master1_data.linear  = motors_linear;
       master1_data.angular = motors_angular;
@@ -223,7 +224,7 @@ void COM_MasterUpdate() {
       master1_data.mode    = robot_mode;
       ESPNOW_Send(master_channel, Slave1_Address, (const uint8_t *)&master1_data, sizeof(master1_data));
   }
-  
+  /*
   if(master2_data.armX_direction  != armX_direction  || master2_data.armY_direction  != armY_direction ||
      master2_data.pitch_direction != pitch_direction || master2_data.roll_direction  != roll_direction ||
      master2_data.grip_direction  != grip_direction){
@@ -235,6 +236,7 @@ void COM_MasterUpdate() {
       master2_data.grip_direction  = grip_direction;
       ESPNOW_Send(master_channel, Slave2_Address, (const uint8_t *)&master2_data, sizeof(master2_data));
   }
+  */
 }
 
 #endif

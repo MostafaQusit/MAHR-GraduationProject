@@ -5,11 +5,11 @@
 #include <esp_wifi.h>
 #include <WiFi.h>
 
-// MAC Addresses of the devices:
+// MAC Addresses of the devices: mmmmmmmmm
 uint8_t Master_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xC3, 0x10}; // MAC Address of Master ESP32
 uint8_t Slave1_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xEA, 0xF0}; // MAC Address of Slave1 ESP32
 uint8_t Slave2_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8}; // MAC Address of Slave2 ESP32
-uint8_t Slave3_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8}; // MAC Address of Slave3 ESP-CAM
+//uint8_t Slave3_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8}; // MAC Address of Slave3 ESP-CAM
 
 // the Structure of travelling messages bet. the devices
 typedef struct master1_messages {   // Struct message of Master to Salve1
