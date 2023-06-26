@@ -43,7 +43,8 @@ void PS4_ManualMode() {
   robot_mode = MANUAL_MODE;   // change robot mode to Manual mode
   PS4.setLed(0,255,0);        // Set PS4 led to Green
   PS4.sendToController();     // Send this setting to PS4 Controller
-  Serial.println(F("PS4 Controller is Connected.   "));
+  voice_file = MANUAL_ON;
+  ESPNOW1_Send();
 }
 
 /**
@@ -51,18 +52,19 @@ void PS4_ManualMode() {
  */
 void PS4_AutonoMode() {
   // Reset all parameters (zeroing):
-  motors_angular  = 0;
-  motors_linear   = 0;
-  armX_direction  = 0;
-  armY_direction  = 0;
-  pitch_direction = 0;
-  roll_direction  = 0;
-  grip_direction  = 0;
+  motors_angular    = 0;
+  motors_linear     = 0;
+  arm_directions[X] = 0;
+  arm_directions[Y] = 0;
+  arm_directions[P] = 0;
+  arm_directions[R] = 0;
+  arm_directions[G] = 0;
 
   robot_mode = AUTONO_MODE;   // change robot mode to Autonomous mode
   PS4.setLed(255, 0, 0);      // Set PS4 led to Red
   PS4.sendToController();     // Send this setting to PS4 Controller
-  Serial.println(F("PS4 Controller is Disconnected."));
+  voice_file = MANUAL_OFF;
+  ESPNOW1_Send();
 }
 
 /**
@@ -82,19 +84,19 @@ void PS4_Setup() {
 void PS4_DataUpdate() {
   if(PS4.isConnected()){
     // End-Effector planer linear speed in XY axises
-    if     (PS4.UpRight()  ) { armX_direction =  1.0;  armY_direction =  1.0; }
-    else if(PS4.UpLeft()   ) { armX_direction = -1.0;  armY_direction =  1.0; }
-    else if(PS4.DownRight()) { armX_direction =  1.0;  armY_direction = -1.0; }
-    else if(PS4.DownLeft() ) { armX_direction = -1.0;  armY_direction = -1.0; }
-    else if(PS4.Up()       ) { armX_direction =  0.0;  armY_direction =  1.0; }
-    else if(PS4.Down()     ) { armX_direction =  0.0;  armY_direction = -1.0; }
-    else if(PS4.Right()    ) { armX_direction =  1.0;  armY_direction =  0.0; }
-    else if(PS4.Left()     ) { armX_direction = -1.0;  armY_direction =  0.0; }
-    else                     { armX_direction =  0.0;  armY_direction =  0.0; }
+    if     (PS4.UpRight()  ) { arm_directions[X] =  1.0;  arm_directions[Y] =  1.0; }
+    else if(PS4.UpLeft()   ) { arm_directions[X] = -1.0;  arm_directions[Y] =  1.0; }
+    else if(PS4.DownRight()) { arm_directions[X] =  1.0;  arm_directions[Y] = -1.0; }
+    else if(PS4.DownLeft() ) { arm_directions[X] = -1.0;  arm_directions[Y] = -1.0; }
+    else if(PS4.Up()       ) { arm_directions[X] =  0.0;  arm_directions[Y] =  1.0; }
+    else if(PS4.Down()     ) { arm_directions[X] =  0.0;  arm_directions[Y] = -1.0; }
+    else if(PS4.Right()    ) { arm_directions[X] =  1.0;  arm_directions[Y] =  0.0; }
+    else if(PS4.Left()     ) { arm_directions[X] = -1.0;  arm_directions[Y] =  0.0; }
+    else                     { arm_directions[X] =  0.0;  arm_directions[Y] =  0.0; }
 
     // Robot motion speed:
-    motors_linear  =  ((float_t)PS4.LStickY())/(128.0);
-    motors_angular = -((float_t)PS4.RStickX())/(128.0);
+    motors_linear  =  ((float_t)PS4.LStickY())/(128.0) * (PS4.L3()? 1.0:0.6);
+    motors_angular = -((float_t)PS4.RStickX())/(128.0) * (PS4.R3()? 1.0:0.7);
     if(abs(motors_linear )<0.2) { motors_linear  = 0.0; }
     if(abs(motors_angular)<0.2) { motors_angular = 0.0; }
 
@@ -104,30 +106,49 @@ void PS4_DataUpdate() {
     else                      { zAxis_direction =  0; }
 
     // Arm: pitch speed
-    if     ( PS4.Circle() ) { pitch_direction =  1.0; }
-    else if( PS4.Square() ) { pitch_direction = -1.0; }
-    else                    { pitch_direction =  0.0; }
+    if     ( PS4.Circle() ) { arm_directions[P] =  1.0; }
+    else if( PS4.Square() ) { arm_directions[P] = -1.0; }
+    else                    { arm_directions[P] =  0.0; }
 
     // Arm: roll speed
-    if     ( PS4.R1() ) { roll_direction =  1.0; }
-    else if( PS4.L1() ) { roll_direction = -1.0; }
-    else                { roll_direction =  0.0; }
+    if     ( PS4.R1() ) { arm_directions[R] =  1.0; }
+    else if( PS4.L1() ) { arm_directions[R] = -1.0; }
+    else                { arm_directions[R] =  0.0; }
 
     // Arm: grip speed
-    if     ( PS4.R2() ) { grip_direction =  1.0; }
-    else if( PS4.L2() ) { grip_direction = -1.0; }
-    else                { grip_direction =  0.0; }
+    if     ( PS4.R2() ) { arm_directions[G] =  1.0; }
+    else if( PS4.L2() ) { arm_directions[G] = -1.0; }
+    else                { arm_directions[G] =  0.0; }
   }
 }
 
 /**
- * @brief   update modes by PS4 command(options=Manual, share=autonomous)
+ * @brief   update modes & Options by PS4 command
+ *           (options  button = Manual     Mode) 
+ *           (share    button = Autonomous Mode) 
+ *           (PS       button = Base       Mode) 
+ *           (TouchPad button = Arm        Mode) 
  */
-void PS4_ModeUpdate(){
+void PS4_OptionsUpdate(){
   if(PS4.isConnected()){
      // change robot mode and PS4-Led accordingly
     if( PS4.Options() ) { PS4_ManualMode(); }
     if( PS4.Share()   ) { PS4_AutonoMode(); }
+    
+    if( PS4.PSButton() ) {
+      PS4.setFlashRate(100,  0);
+      PS4.sendToController();
+      control_mode = BASE_MODE;
+      voice_file = BASE_ON;
+      ESPNOW1_Send();
+    }
+    if( PS4.Touchpad() ) {
+      PS4.setFlashRate( 50, 50);
+      PS4.sendToController();
+      control_mode =  ARM_MODE;
+      voice_file =  ARM_ON;
+      ESPNOW1_Send();
+    }
   }
 }
 
@@ -161,11 +182,15 @@ void PS4_PrintAll() {
  * @brief   Print all variables that PS4 Controller can update
  */
 void PS4_PrintData() {
-  Serial.printf("Speed(l:%4.2f,a:%4.2f)\tzAxis(%2.0f)\tArm(%2.0f,%2.0f)\troll(%2.0f)\tpitch(%2.0f)\tGrip(%2.0f)\n",
-                motors_linear, motors_angular,
+  Serial.printf("Speed(l:%4.2f,a:%4.2f)\tzAxis(%2.0f)\tArm(%2.0f,%2.0f)\tpitch(%2.0f)\troll(%2.0f)\tGrip(%2.0f)\n",
+                motors_linear,
+                motors_angular,
                 zAxis_direction,
-                armX_direction, armY_direction,
-                roll_direction, pitch_direction, grip_direction);
+                arm_directions[X],
+                arm_directions[Y],
+                arm_directions[P],
+                arm_directions[R],
+                arm_directions[G]);
 }
 
 #endif

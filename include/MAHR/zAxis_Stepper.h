@@ -10,24 +10,23 @@
 #define QUARTER_STEP    0.2500
 #define EIGHTH_STEP     0.1250
 #define SIXTEENTH_STEP  0.0625
-#define MICROSTEP       QUARTER_STEP
+#define MICROSTEP       FULL_STEP
 
-#define STEPPER_PPR         (200.0/MICROSTEP)   // Stepper resolution in (pulse per resolution -> PPR)
-#define PULLEY_RADIUS_CM     10.0               // Pulley Radius in (mm)
-#define TRAVEL_DISTANCE_CM  250.0               // Distance between the Top and Bottom in (mm)
+#define STEPPER_PPR         (200.0/MICROSTEP)                     // Stepper resolution in (pulse per resolution -> PPR)
+#define PULLEY_RADIUS_MM     10.0                                 // Pulley Radius in (mm)
+#define MAX_TRAVEL_MM       250.0                                 // Max Travel between the Top and Bottom in (mm)
+#define MAX_TRAVEL_DEG      R2D(MAX_TRAVEL_MM/PULLEY_RADIUS_MM)   // Max Travel between the Top and Bottom in (degree)
 
 AccelStepper zAxis(1, STEPPER_STP, STEPPER_DIR); // Z-Axis stepper-motor object
 
-float_t zAxis_Distance;   // Z-Axis Distance (Height) from home point [0~250] in (mm)
-float_t zAxis_Angle;      // Z-Axis Angle             from home point [0~ 25] in (radian)
-
+float_t zAxis_angle;    // Z-Axis Angle from home point [0~ 25] in (radian)
 
 /**
  * @brief   Go to any of exterme positions
  * 
  * @param   zPosition   exterme position: (1) for TOP, (-1) for BOTTOM
  */
-void zAxis_GoTo(uint8_t zPosition=-1) {
+void zAxis_GoTo(int8_t zPosition) {
   uint8_t ls_pin; // limit switch pin
 
   // check the responsible limit switch according to the extreme position
@@ -37,9 +36,9 @@ void zAxis_GoTo(uint8_t zPosition=-1) {
   }
 
   // move until reach the limit switch:
+  zAxis.setSpeed(250/MICROSTEP * zPosition);
   while( digitalRead(ls_pin) == 0 ) {
-    zAxis.setSpeed(1000/MICROSTEP * zPosition);
-    zAxis.run();
+    zAxis.runSpeed();
   }
 
   zAxis.stop(); // stop the stepper motor
@@ -52,6 +51,7 @@ void zAxis_Homing() {
   Serial.print(F("Z-Axis Homing... "));
   zAxis_GoTo(-1);   // Go to BOTTOM exterme position
   Serial.println(F("DONE"));
+  zAxis.setCurrentPosition(MAX_TRAVEL_DEG);
 }
 
 /**
@@ -70,18 +70,19 @@ void zAxis_Setup(float_t MaxSpeed_pps, float_t Acceleration_ppss) {
   pinMode(LOWER_LS, INPUT_PULLDOWN);
 
   zAxis_Homing(); // homing every time the code start (for resetting the stepper motors)
-  
-  zAxis.stop(); // stop the stepper motor
 }
 
 /**
  * @brief   free move according to control speed direction within the limits
  */
 void zAxis_RunSpeed() {
+  // stop if you in BOTTOM position and want to go down more:
   if     ( digitalRead(LOWER_LS) && zAxis_direction < 0 ) { zAxis.stop(); }
+  // stop if you in TOP position and want to go up more:
   else if( digitalRead(UPPER_LS) && zAxis_direction > 0 ) { zAxis.stop(); }
+  // else move freely:
   else{
-    zAxis.setSpeed(1000/MICROSTEP * zAxis_direction);
+    zAxis.setSpeed(200/MICROSTEP * zAxis_direction);
     zAxis.runSpeed();
   }
 }
@@ -90,10 +91,10 @@ void zAxis_RunSpeed() {
  * @brief   Run the stepper-motor to reach the required height
  */
 void zAxis_RunToPosition() {
-  zAxis_Distance += 0.1 * zAxis_direction;                    // Update the Distance
-  zAxis_Angle = zAxis_Distance/PULLEY_RADIUS_CM;              // Convert from linear motion to angular motion
-  zAxis.moveTo((long)(zAxis_Angle/(2.0*PI) * STEPPER_PPR));   // Update the motor angle: (radian -> Pulses)
-  zAxis.run();                                                // move step over step until reach the Target
+  zAxis_position = constrain(zAxis_position, 0, MAX_TRAVEL_MM);  // check the limit
+  zAxis_angle = zAxis_position / PULLEY_RADIUS_MM;               // Convert from linear motion to angular motion
+  // Update the motor angle: (radian -> Pulses) and move to the position:
+  zAxis.runToNewPosition((long)(zAxis_angle/(2.0*PI) * STEPPER_PPR));
 }
 
 #endif

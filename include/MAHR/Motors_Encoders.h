@@ -93,12 +93,15 @@ void Encoders_Setup() {
  * @brief   Update Encoder Position and Speed
  */
 void Encoders_DataUpdate(){
-  // Resetting the counters if the robot does not move for a while
-  if(LeftMotor_mms==0 && RightMotor_mms==0 && (millis()-PreviousMillis)>=3000){
-    RightEncoder.clearCount();
-    LeftEncoder.clearCount();
+  /* Resetting the counters if the robot does not move for a while
+  if(LeftMotor_mms!=0 || RightMotor_mms!=0){
     PreviousMillis = millis();
   }
+  if((millis()-PreviousMillis)>=10000){
+    RightEncoder.clearCount();
+    LeftEncoder.clearCount();
+  }
+  */
 
   // Position Calculation:
   RightEncoder_Distance = -RightEncoder.getCount();
@@ -130,8 +133,8 @@ void Motors_RunSpeed() {
   // Check z-Axis State: move only if it in BOTTOM position
   if(true) {  //digitalRead(LOWER_LS)==HIGH
     // Acceleration & Speed Profile (like exp.):
-    LeftMotor_mmss  = (Required_LeftMotor_mms -LeftMotor_mms )/30.0;
-    RightMotor_mmss = (Required_RightMotor_mms-RightMotor_mms)/30.0;
+    LeftMotor_mmss  = (Required_LeftMotor_mms -LeftMotor_mms )/25.0;
+    RightMotor_mmss = (Required_RightMotor_mms-RightMotor_mms)/25.0;
     LeftMotor_mms  += LeftMotor_mmss;
     RightMotor_mms += RightMotor_mmss;
   }

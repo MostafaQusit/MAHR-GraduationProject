@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <MAHR.h>
 
-//#define TEST1
-#define TEST2
+#define TEST1
+//#define TEST2
 //#define TEST3
 
 #ifdef TEST1
@@ -39,15 +39,13 @@ void setup(){
 
 void loop(){
   ArduinoOTA.poll();
-  Serial.println(5);
+  Serial.println(888);
 }
 #endif
 
 #ifdef TEST2
 #include <WiFi.h>
-#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <AsyncElegantOTA.h>
 
 #define SEND_REQUEST (request->send(200, "text/plain", "OK"))   // response on every request from server
 
@@ -110,8 +108,43 @@ if (!!window.EventSource) {
   console.log("message", e.data);
  }, false);
 }
-</script>
 </body>
+</script>
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>
+   <input type='file' name='update'>
+        <input type='submit' value='Update'>
+    </form>
+ <div id='prg'>progress: 0%</div>
+ <script>
+  $('form').submit(function(e){
+  e.preventDefault();
+  var form = $('#upload_form')[0];
+  var data = new FormData(form);
+   $.ajax({
+  url: '/update',
+  type: 'POST',
+  data: data,
+  contentType: false,
+  processData:false,
+  xhr: function() {
+  var xhr = new window.XMLHttpRequest();
+  xhr.upload.addEventListener('progress', function(evt) {
+  if (evt.lengthComputable) {
+  var per = evt.loaded / evt.total;
+  $('#prg').html('progress: ' + Math.round(per*100) + '%');
+  }
+  }, false);
+  return xhr;
+  },
+  success:function(d, s) {
+  console.log('success!')
+ },
+ error: function (a, b, c) {
+ }
+ });
+ });
+</script>
 </html>)rawliteral";
 
 void setup(void) {
@@ -161,14 +194,13 @@ void setup(void) {
   });
   delay(200);
 
-  AsyncElegantOTA.begin(&server);    // Start AsyncElegantOTA
   server.addHandler(&events);
   server.begin();
   Serial.println("HTTP server started");
-  Serial.println(1);
 }
 
 void loop(void) {
+  Serial.println(11);
 }
 #endif
 

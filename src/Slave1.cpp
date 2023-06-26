@@ -4,24 +4,24 @@
 #include <MAHR/COM/Slave1.h>
 #include <MAHR/Motors_Encoders.h>
 #include <MAHR/zAxis_Stepper.h>
-//#include <MAHR/MP3.h>
+#include <MAHR/MP3.h>
 
 void setup() {
   Serial.begin(115200);
   while(!Serial){}
 
-  COM_Slave1Setup("WE_F6AE4C");
-  //zAxis_Setup(1000, 2000);
+  zAxis_Setup(1000, 500);
   Encoders_Setup();
-  //Mp3_Setup();
+  COM_Slave1Setup();
+  Mp3_Setup(30);
 }
 
 void loop() {
-  Encoders_DataUpdate();
-  COM_Slave1Update();
-  //Serial.print(zAxis_Speed);  Serial.print("\t");
   MotorsEncoders_PrintData();
+  Encoders_DataUpdate();
   Motors_RunSpeed();   
-  //zAxis_RunSpeed();
-  //Mp3_StateUpdate();
+  if(robot_mode == MANUAL_MODE) {zAxis_RunSpeed();}
+  else                          {zAxis_RunToPosition();}
+  Mp3_play(voice_file);
+  ESPNOW_Send();
 }

@@ -6,7 +6,7 @@
 
 #define MIN_DISTANCE      3     // Minimum distance (in cm) to ping.
 #define MAX_DISTANCE    200     // Maximum distance (in cm) to ping.
-#define BREAK_DISTANCE  30.0    // distance that break action activate (in cm)
+#define BREAK_DISTANCE  20.0    // distance that break action activate (in cm)
 
 NewPing Ping[4] = { // Sensor object array
     NewPing(USTX_FL, USRX_FL, MAX_DISTANCE),
@@ -28,8 +28,8 @@ void Ultrasonics_DataUpdate() {
  * @brief   Print the Ultrasonics Distance
  */
 void Ultrasonics_PrintData() {
-  Serial.printf("Ultrasonics: Distance(%4u,%4u,%4u,%4u)cm\n",
-                ultrasonics[0], ultrasonics[1], ultrasonics[2], ultrasonics[3]);
+    Serial.printf("Ultrasonics: Distance(%4u,%4u,%4u,%4u)cm\n",
+                    ultrasonics[0], ultrasonics[1], ultrasonics[2], ultrasonics[3]);
 }
 
 /**
@@ -51,9 +51,16 @@ void Ultrasonics_ObstacleAvoid(){
         if(range < BREAK_DISTANCE){ // if the robot become close to obstacle more than the limit
             break_action = range/BREAK_DISTANCE;    // calculate the break effect
             break_action = constrain(break_action, 0.0, 1.0);
+            PS4.setRumble(1.0-break_action, 0);
+        }
+        else{
+            PS4.setRumble(0, 0);
         }
 
         motors_linear *= break_action;  // update the linear speed accordingly
+    }
+    else{
+        PS4.setRumble(0, 0);
     }
 }
 #endif

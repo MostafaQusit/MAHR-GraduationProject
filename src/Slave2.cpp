@@ -8,11 +8,12 @@ void setup() {
   Serial.begin(115200);
   while(!Serial){}
 
-  Arm_Setup();
-  Slave2_Setup("WE_F6AE4C");
+  Arm_Setup(2000, 1000);
+  COM_Slave2Setup();  
 }
 
 void loop() {
-  Slave2_DataUpdate();
+  Arm_AnglesUpdate();
   Arm_RunToPosition();
+  Arm_PrintData();
 }

@@ -6,7 +6,7 @@
 
 master2_msgs master2_data;
 
-int32_t slave2_channel;   // WiFi Channel of Slave2
+esp_now_peer_info_t peerInfo_master;
 
 /**
  * @brief Call-back function when any recviced data arrive to Salve2
@@ -16,36 +16,47 @@ int32_t slave2_channel;   // WiFi Channel of Slave2
  * @param   len             length of data
  */
 void Slave2_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {  
-  if(Match_MAC(mac_addr, Master_Address)){
+  if(match_array<const uint8_t>(mac_addr, Master_Address, 6)){
     memcpy(&master2_data, incomingData, sizeof(master2_data));
-    armX_direction  = master2_data.armX_direction;
-    armY_direction  = master2_data.armY_direction;
-    pitch_direction = master2_data.pitch_direction;
-    roll_direction  = master2_data.roll_direction;
-    grip_direction  = master2_data.grip_direction;
+    robot_mode = master2_data.mode;
+    for(uint8_t i=0; i<5; i++) {arm_directions[i] = constrain(master2_data.arm_dir[i], -1.0, 1.0);}
+    for(uint8_t i=0; i<5; i++) {arm_angles    [i] = master2_data.arm_ang[i];}
+  }
+  else {
+    Serial.print("\tError in mac\t");
   }
 }
 
 /**
  * @brief Communication Setup of Slave2
- *
- * @param   ssid        Network SSID
  */
-void COM_Slave2Setup(const char* ssid) {
+void COM_Slave2Setup() {
   WiFi.mode(WIFI_STA);    // Set the device as a Wi-Fi Station
-
+  
   // Set WiFi Channel:
-  slave2_channel = getWiFiChannel(ssid);
+  Channel = CHANNEL;
   esp_wifi_set_promiscuous(true);
-  esp_wifi_set_channel(slave2_channel, WIFI_SECOND_CHAN_NONE);
+  esp_wifi_set_channel(Channel, WIFI_SECOND_CHAN_NONE);
   esp_wifi_set_promiscuous(false);
   
-  //Init ESP-NOW
+  //Init ESP-NOW:
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
   esp_now_register_recv_cb(Slave2_OnDataRecv); // Call-back
+  
+  // Register peer:
+  memcpy(peerInfo.peer_addr, Master_Address, 6);
+  peerInfo.channel = Channel;
+  peerInfo.encrypt = false;
+
+  // Add peer:
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
+  delay(100);
 }
 
 /**
@@ -54,6 +65,5 @@ void COM_Slave2Setup(const char* ssid) {
 void COM_Slave2Update() {
   // do nothing
 }
-
 
 #endif

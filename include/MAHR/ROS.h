@@ -51,7 +51,6 @@ void ROS_Setup(int32_t BaudRate) {
  * @brief   Send the sensory data (Encoders Reading) to ROS
  */
 void ROS_SendData() {
-  delay(30);
   nh.spinOnce();
   
   // Update Encoders message:

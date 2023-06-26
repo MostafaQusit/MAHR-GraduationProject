@@ -4,10 +4,6 @@
 #include <MAHR.h>
 #include <MAHR/COM.h>
 #include <ESPAsyncWebServer.h>
-//#include <AsyncTCP.h>
-//#include <AsyncElegantOTA.h>
-//#include <ArduinoOTA.h>
-//#include <ElegantOTA.h>
 
 #define SEND_REQUEST (request->send(200, "text/plain", "OK"))   // response on every request from server
 
@@ -69,13 +65,25 @@ IPAddress local_IP(192, 168, 1, 184); // Set your Static  IP address
 IPAddress gateway(192, 168, 1, 1);    // Set your Gateway IP address
 IPAddress subnet(255, 255, 0, 0);     // Set Subnet address
 
-// To get the local time we must include DNS servers. Google's used here.
-IPAddress primaryDNS(8, 8, 8, 8);   // Primary   DNS server
-IPAddress secondaryDNS(8, 8, 4, 4); // Secondary DNS server
-
-int32_t master_channel;   // WiFi Channel of Master
-
 float_t Speed;  // Speed Level
+
+/**
+ * @brief Call-back function when any data have been sent
+ *
+ * @param   mac_addr        the MAC address whose have received from the message
+ * @param   incomingData    sending data
+ * @param   len             length of data
+ */
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+  char macStr[18];
+  Serial.print("Packet from: ");
+  // Copies the sender mac address to a string
+  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
+           mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+  Serial.print(macStr);
+  Serial.print(" send status:\t");
+  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+}
 
 /**
  * @brief Call-back function when any recviced data arrive to Master
@@ -85,7 +93,7 @@ float_t Speed;  // Speed Level
  * @param   len             length of data
  */
 void Master_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
-  if(Match_MAC(mac_addr, Slave1_Address)){
+  if(match_array<const uint8_t>(mac_addr, Slave1_Address, 6)){
     memcpy(&slave1_data, incomingData, sizeof(slave1_data));
     LeftEncoder_Distance  = slave1_data.LeftPosition;
     RightEncoder_Distance = slave1_data.RightPosition;
@@ -125,27 +133,27 @@ void Server_Setup(){
 
   server.on("/stop", HTTP_GET, [](AsyncWebServerRequest *request){motors_linear = 0;  motors_angular = 0;  SEND_REQUEST;});
 
-  server.on("/AUp"   , HTTP_GET, [](AsyncWebServerRequest *request){armX_direction =  0;   armY_direction =  1;  SEND_REQUEST;});
-  server.on("/Adown" , HTTP_GET, [](AsyncWebServerRequest *request){armX_direction =  0;   armY_direction = -1;  SEND_REQUEST;});
-  server.on("/Aleft" , HTTP_GET, [](AsyncWebServerRequest *request){armX_direction = -1;   armY_direction =  0;  SEND_REQUEST;});
-  server.on("/Aright", HTTP_GET, [](AsyncWebServerRequest *request){armX_direction =  1;   armY_direction =  0;  SEND_REQUEST;});
-  server.on("/Astop" , HTTP_GET, [](AsyncWebServerRequest *request){armX_direction =  0;   armY_direction =  0;  SEND_REQUEST;});
+  server.on("/AUp"   , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[X] =  0;   arm_directions[Y] =  1;  SEND_REQUEST;});
+  server.on("/Adown" , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[X] =  0;   arm_directions[Y] = -1;  SEND_REQUEST;});
+  server.on("/Aleft" , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[X] = -1;   arm_directions[Y] =  0;  SEND_REQUEST;});
+  server.on("/Aright", HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[X] =  1;   arm_directions[Y] =  0;  SEND_REQUEST;});
+  server.on("/Astop" , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[X] =  0;   arm_directions[Y] =  0;  SEND_REQUEST;});
 
   server.on("/zUp"  , HTTP_GET, [](AsyncWebServerRequest *request){zAxis_direction =  1;  SEND_REQUEST;});
   server.on("/zDown", HTTP_GET, [](AsyncWebServerRequest *request){zAxis_direction = -1;  SEND_REQUEST;});
   server.on("/zStop", HTTP_GET, [](AsyncWebServerRequest *request){zAxis_direction =  0;  SEND_REQUEST;});
 
-  server.on("/wristUp"  , HTTP_GET, [](AsyncWebServerRequest *request){pitch_direction =  1;  SEND_REQUEST;});
-  server.on("/wristDown", HTTP_GET, [](AsyncWebServerRequest *request){pitch_direction = -1;  SEND_REQUEST;});
-  server.on("/wristStop", HTTP_GET, [](AsyncWebServerRequest *request){pitch_direction =  0;  SEND_REQUEST;});
+  server.on("/wristUp"  , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[P] =  1;  SEND_REQUEST;});
+  server.on("/wristDown", HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[P] = -1;  SEND_REQUEST;});
+  server.on("/wStop"    , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[P] =  0;  SEND_REQUEST;});
 
-  server.on("/rollCW", HTTP_GET, [](AsyncWebServerRequest *request){roll_direction =  1;  SEND_REQUEST;});
-  server.on("/rolCCW", HTTP_GET, [](AsyncWebServerRequest *request){roll_direction = -1;  SEND_REQUEST;});
-  server.on("/rStop" , HTTP_GET, [](AsyncWebServerRequest *request){roll_direction =  0;  SEND_REQUEST;});
+  server.on("/rollCW"   , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[R] =  1;  SEND_REQUEST;});
+  server.on("/rolCCW"   , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[R] = -1;  SEND_REQUEST;});
+  server.on("/rStop"    , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[R] =  0;  SEND_REQUEST;});
 
-  server.on("/grip"  , HTTP_GET, [](AsyncWebServerRequest *request){grip_direction =  1;  SEND_REQUEST;});
-  server.on("/ungrip", HTTP_GET, [](AsyncWebServerRequest *request){grip_direction = -1;  SEND_REQUEST;});
-  server.on("/gStop" , HTTP_GET, [](AsyncWebServerRequest *request){grip_direction =  0;  SEND_REQUEST;});
+  server.on("/grip"     , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[G] =  1;  SEND_REQUEST;});
+  server.on("/ungrip"   , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[G] = -1;  SEND_REQUEST;});
+  server.on("/gStop"    , HTTP_GET, [](AsyncWebServerRequest *request){arm_directions[G] =  0;  SEND_REQUEST;});
 
   events.onConnect([](AsyncEventSourceClient *client){
     client->send("hello!", NULL, millis(), 10000);
@@ -162,7 +170,7 @@ void Server_Update(){
   static unsigned long lastEventTime = millis();
   static const unsigned long EVENT_INTERVAL_MS = 5000;
   if ((millis() - lastEventTime) > EVENT_INTERVAL_MS) {
-    events.send("ping",NULL,millis());
+    events.send("ping", NULL, millis());
     lastEventTime = millis();
   }
 }
@@ -174,69 +182,74 @@ void Server_Update(){
  * @param   password    Network Password
  */
 void COM_MasterSetup(const char* ssid, const char* password) {
+  WiFi.mode(WIFI_STA);  // Set the device as a Wi-Fi Station (set to WIFI_AP_STA in case of WiFi & ESPNOW)
+
+  /** WiFi Init in app vis WiFi case
+  WiFi.begin(ssid, password);   // Connect to the Network:
   // Configures static IP address
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  if (!WiFi.config(local_IP, gateway, subnet)) {
     Serial.println(F("STA Failed to configure"));
   }
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Setting as a Wi-Fi Station..");
+  }
+  Serial.print("Station IP Address: "); Serial.println(WiFi.localIP());
+  Serial.print("Wi-Fi Channel: ");      Serial.println(WiFi.channel());
+  */
 
-  WiFi.mode(WIFI_STA);  // Set the device as a Wi-Fi Station
+  // Set WiFi Channel: (in case for no WiFi connection)
+  esp_wifi_set_promiscuous(true); // Required to allow setting of channel
+  esp_wifi_set_channel(CHANNEL, WIFI_SECOND_CHAN_NONE);
+  esp_wifi_set_promiscuous(false); // EXPERIMENT
 
-  // Connect to the Network:
-  WiFi.begin(ssid, password);
-  //Serial.print(F("Connecting to WiFi"));
-  //while (WiFi.status() != WL_CONNECTED) { // Check if connected or still not:
-  //  Serial.print(".");
-  //  delay(100);
-  //}
-  Serial.print("\nStation IP Address: ");
-  Serial.println(WiFi.localIP());
-  
-  // Get WiFi Channel:
-  Serial.print("Wi-Fi Channel: ");          Serial.print(WiFi.channel());
-  //master_channel = getWiFiChannel(ssid);    Serial.println(master_channel);
-
-  // Init ESP-NOW
+  // Init ESP-NOW:
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
   esp_now_register_recv_cb(Master_OnDataRecv);  // Call-back
+  esp_now_register_send_cb(OnDataSent);
+  
+  // Register peer:
+  peerInfo.channel = CHANNEL;
+  peerInfo.encrypt = false;
 
-  Server_Setup();   // for app
-  delay(200);
+  // Add peer devices:
+  memcpy(peerInfo.peer_addr, Slave1_Address, 6);
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
+  
+  memcpy(peerInfo.peer_addr, Slave2_Address, 6);
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
 }
 
 /**
- * @brief Send to the data others
+ * @brief Send the data to Slave1 by ESP-NOW
  */
-void COM_MasterUpdate() {
-  Server_Update();
+void ESPNOW1_Send(){
+  master1_data.linear  = motors_linear;
+  master1_data.angular = motors_angular;
+  master1_data.zDir    = zAxis_direction;
+  master1_data.zPos    = zAxis_position;
+  master1_data.vFile   = voice_file;
+  master1_data.mode    = robot_mode;
+  esp_now_send(Slave1_Address, (const uint8_t *)&master1_data, sizeof(master1_data)); // Send message
+}
 
-  // if any change happen in the sending variables, send the new values to others:
-  if(master1_data.linear != motors_linear   || master1_data.angular != motors_angular ||
-     master1_data.zDir   != zAxis_direction || master1_data.vFile   != voice_file     ||
-     master1_data.mode != robot_mode){
-      
-      master1_data.linear  = motors_linear;
-      master1_data.angular = motors_angular;
-      master1_data.zDir    = zAxis_direction;
-      master1_data.vFile   = voice_file;
-      master1_data.mode    = robot_mode;
-      ESPNOW_Send(master_channel, Slave1_Address, (const uint8_t *)&master1_data, sizeof(master1_data));
-  }
-  /*
-  if(master2_data.armX_direction  != armX_direction  || master2_data.armY_direction  != armY_direction ||
-     master2_data.pitch_direction != pitch_direction || master2_data.roll_direction  != roll_direction ||
-     master2_data.grip_direction  != grip_direction){
-      
-      master2_data.armX_direction  = armX_direction;
-      master2_data.armY_direction  = armY_direction;
-      master2_data.pitch_direction = pitch_direction;
-      master2_data.roll_direction  = roll_direction;
-      master2_data.grip_direction  = grip_direction;
-      ESPNOW_Send(master_channel, Slave2_Address, (const uint8_t *)&master2_data, sizeof(master2_data));
-  }
-  */
+/**
+ * @brief Send the data to Slave2 by ESP-NOW
+ */
+void ESPNOW2_Send(){
+  for(uint8_t i=0; i<5; i++) {master2_data.arm_dir[i] = arm_directions[i];}
+  for(uint8_t i=0; i<5; i++) {master2_data.arm_ang[i] = arm_angles    [i];}
+  master2_data.mode = robot_mode;
+  esp_now_send(Slave2_Address, (const uint8_t *)&master2_data, sizeof(master2_data)); // Send message
 }
 
 #endif

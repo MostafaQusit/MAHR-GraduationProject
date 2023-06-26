@@ -5,19 +5,24 @@
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
-//#include <BluetoothSerial.h>
+#include <private_data.h>
+#include <MAHR/MP3_List.h>
 #include <MAHR/PinsList.h>
 using namespace std;
 
-//BluetoothSerial SerialBT;   // Serial Bluetooth Object
+#define R2D(RADIAN)   (RADIAN*180.0/PI) // convert from Radian to Degree
+#define D2R(DEGREE)   (DEGREE*PI/180.0) // convert from Degree to Radian
 
 #define WHEEL_BASE_MM   374.2   // Robot's Wheel Base in (mm)
 #define WHEEL_RADIUS_MM  54.0   // Robot's Radius in (mm)
 
-#define AUTONO_MODE   0   // Autonomous Mode
-#define MANUAL_MODE   1   // Manual(RC) Mode
-
+#define AUTONO_MODE   0             // Autonomous Mode
+#define MANUAL_MODE   1             // Manual(RC) Mode
 uint8_t robot_mode = AUTONO_MODE;   // Robot Mode
+
+#define BASE_MODE   0             // Base (DC Motors and Z-Axis) Mode
+#define  ARM_MODE   1             // Arm Mode
+uint8_t control_mode = BASE_MODE; // Control Mode
 
 // Encoders:
 int64_t RightEncoder_Distance;    // Right Encoder: Travelling Distance in (degrees)
@@ -42,7 +47,7 @@ float_t motors_linear;    // Motors:  linear vector [0~1] (presentage)
 float_t motors_angular;   // Motors: angular vector [0~1] (presentage)
 
 // MP3:
-uint16_t voice_file;    // MP3: file number [1~255]
+uint16_t voice_file=1;    // MP3: file number [1~255]
 
 // ROS:
 int32_t Target_PositionX;   // ROS: Target Position in X-axis
@@ -52,18 +57,76 @@ int32_t Current_PositionX;   // ROS: Current Position in X-axis
 int32_t Current_PositionY;   // ROS: Current Position in Y-axis
 
 // Z-Axis Stepper:
-float_t zAxis_direction; // Z-Axis Stepper: speed in (pulse/s)
+float_t zAxis_direction;  // Z-Axis Stepper: direction, (1) is for a direction, (-1) is for the other, (0) is Stop
+float_t zAxis_position;   // Z-Axis Stepper: position (Height) from home point [0~250] in (mm)
 
 // Arm:
-float_t armX_direction;   // Arm: End-Effector planer speed in X-axis
-float_t armY_direction;   // Arm: End-Effector planer speed in Y-axis
-float_t pitch_direction;  // Arm: Pitch joint speed
-float_t roll_direction;   // Arm: Roll  joint speed
-float_t grip_direction;   // Arm: Grip  joint speed
+#define X 0 // X-axis index
+#define Y 1 // Y-axis index
+#define P 2 // Pitch  index
+#define R 3 // Roll   index
+#define G 4 // Grip   index
 
-// Filters
-template <int order> // order is 1 or 2
-class LowPass { // Low Pass Filter
+#define A 0 // link1 index
+#define B 1 // link2 index
+
+/**
+ * Arm parameters as directions: (1) is for a direction, (-1) is for the other, (0) is Stop
+ *  - index [0]=[X] is End-Effector planer direction in X-axis
+ *  - index [1]=[Y] is End-Effector planer direction in Y-axis
+ *  - index [2]=[P] is Pitch joint direction
+ *  - index [3]=[R] is Roll  joint direction
+ *  - index [4]=[G] is Grip  joint direction
+ */
+float_t arm_directions[5];
+
+/**
+ * Arm parameters as angles in (degree):
+ *  - index [0]=[A] is link1 joint angle
+ *  - index [1]=[B] is link2 joint angle
+ *  - index [2]=[P] is Pitch joint angle
+ *  - index [3]=[R] is Roll  joint angle
+ *  - index [4]=[G] is Grip  joint angle
+ */
+float_t arm_angles[5];
+
+/**
+ * @brief   get the sign of any type of data
+ *
+ * @param   number  the number
+ *
+ * @return  +1 if positive(+ve), -1 if negative(-ve) and 0 otherwise
+ */
+template <typename S> S sign(S number){
+  S sign = 0;
+  if     (number > 0) { sign =  1; }
+  else if(number < 0) { sign = -1; }
+  return sign;
+}
+
+/**
+ * @brief   match between 2 arrays of any type
+ * 
+ * @param   arr1  array number 1
+ * @param   arr2  array number 2
+ * 
+ * @return  true(1) if are identical, false(0) if not
+ */
+template <typename T> bool match_array(T* arr1, T* arr2, size_t len){
+  for(size_t i=0; i<len; i++){
+    if(arr1[i] != arr2[i]){
+      return 0;
+    }
+  }
+  return 1;
+}
+
+/**
+ * @brief Low Pass Filter Class
+ * 
+ * @param   order   order of the filter: 1st-order(1) or 2nd-order(2) only
+ */
+template <int order> class LowPass {
   private:
     float a[order];
     float b[order+1];

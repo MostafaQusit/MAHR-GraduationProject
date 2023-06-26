@@ -36,6 +36,7 @@ void Mp3_Setup(uint16_t volume=30) {
 
   mp3.playFolder(1,1);  // Set initial file number 1
   current_file = 1;     // update the current file
+  mp3.start();
 }
 
 /**
@@ -92,15 +93,14 @@ void Mp3_StateUpdate() {
  */
 void Mp3_play(uint16_t required_file){
   int16_t diff_file = required_file - current_file; // Calculate the difference between current and required
-  mp3.stop();   // stop the MP3 if any file running
   if(diff_file != 0){   // if the required file is not the current file
+    mp3.stop();   // stop the MP3 if any file running
     for (uint16_t f = 0; f < abs(diff_file); f++){
-      if(diff_file > 0) {mp3.next();}     // if required file after  the current file
+      if(diff_file > 0) {mp3.next();    }     // if required file after  the current file
       if(diff_file < 0) {mp3.previous();} // if required file before the current file
     }
     current_file = required_file; // Update the current file
   }
-  mp3.start();  // play the current file
 }
 
 #endif

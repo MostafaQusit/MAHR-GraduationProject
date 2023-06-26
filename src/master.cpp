@@ -3,31 +3,37 @@
 
 #include <MAHR/COM/Master.h>
 #include <MAHR/ROS.h>
-//#include <MAHR/GSM.h>
-#include <MAHR/Ultrasonics.h>
+#include <MAHR/GSM.h>
 #include <MAHR/PS4_Controller.h>
+#include <MAHR/Ultrasonics.h>
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(57600);
   while(!Serial){}
 
   //GSM_Setup();
-  //SerialBT.begin("ESP32-Master"); // Bluetooth device name
   PS4_Setup();
-  COM_MasterSetup("WE_F6AE4C", "lcw04660"); // ("Koset", "h9f16306");
+  COM_MasterSetup(HOME2_SSID, HOME2_PASS);
   ROS_Setup(57600);
+  voice_file = INTRODUCTION;
+  delay(100);
 }
 
 void loop() {
-  PS4_ModeUpdate();
-  Ultrasonics_DataUpdate();
-  //Ultrasonics_ObstacleAvoid();
-  //GSM_CheckIncoming();
+  delay(5);
+  PS4_OptionsUpdate();
   ROS_SendData();
-  if(robot_mode == AUTONO_MODE) {ROS_CheckIncoming();}
-  else                          {PS4_DataUpdate();   }
-  COM_MasterUpdate();
-  // print data:
-  //Serial.printf("10\tMotors: linear = %3.2f,  angular = %3.2f\n", motors_linear, motors_angular);
-  //SerialBT.printf("%d,  x: %3.2f,  z: %3.2f\n", robot_mode, motors_linear, motors_angular);
+  Ultrasonics_DataUpdate();
+  Ultrasonics_PrintData();
+  //GSM_CheckIncoming();
+  if(robot_mode == AUTONO_MODE) {
+    ROS_CheckIncoming();
+  }
+  else {
+    PS4_DataUpdate();
+    //Ultrasonics_ObstacleAvoid();
+  }
+  
+  if(control_mode == ARM_MODE) {ESPNOW2_Send();}
+  else                         {ESPNOW1_Send();}
 }
