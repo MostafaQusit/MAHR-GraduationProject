@@ -43,7 +43,7 @@ int64_t RightEncoder_PrevDistance;  // right Encoder previous distance for speed
 int64_t LeftEncoder_PrevDistance;   // left  Encoder previous distance for speed calculation in (deg)
 
 // Differential Controller parameters:
-int8_t sign;              // the difference between error in each motor: 1(+ve) in linear motion, -1(-ve) in angular motion
+int8_t Sign;              // the difference between error in each motor: 1(+ve) in linear motion, -1(-ve) in angular motion
 float_t DifferenceError;  // Difference Error
 float_t Rout_offset;      // the offset in (rotation point out side robot) case
 float_t Rin_offset;       // the offset in (rotation point in  side robot) case
@@ -144,8 +144,8 @@ void Motors_RunSpeed() {
   }
 
   // Define Motion State:
-  if      (abs(motors_linear) > abs(motors_angular)) { CurrState = LINEAR;  sign =  1; }
-  else if (abs(motors_linear) < abs(motors_angular)) { CurrState = ANGULAR; sign = -1; }
+  if      (abs(motors_linear) > abs(motors_angular)) { CurrState = LINEAR;  Sign =  1; }
+  else if (abs(motors_linear) < abs(motors_angular)) { CurrState = ANGULAR; Sign = -1; }
   else                                               { CurrState = STOP;               }
 
   // Encoder Resetting between States:
@@ -160,13 +160,13 @@ void Motors_RunSpeed() {
   Rin_offset =  Required_LeftMotor_mms + Required_RightMotor_mms; // In (rotation point in  side robot) case
 
   // calculate error difference:
-  if     (CurrState == ANGULAR) { DifferenceError = 5.5*((float_t)(RightEncoder_CurrDistance + LeftEncoder_CurrDistance + Rin_offset )); }
-  else if(CurrState == LINEAR ) { DifferenceError = 5.5*((float_t)(RightEncoder_CurrDistance - LeftEncoder_CurrDistance + Rout_offset)); }
+  if     (CurrState == ANGULAR) { DifferenceError = 9.5*((float_t)(RightEncoder_CurrDistance + LeftEncoder_CurrDistance + Rin_offset )); }
+  else if(CurrState == LINEAR ) { DifferenceError = 9.5*((float_t)(RightEncoder_CurrDistance - LeftEncoder_CurrDistance + Rout_offset)); }
   else                          { DifferenceError = 0.0; }
   
   // convert motor-speed from mm/s to RPM:
   float_t RightMotor_RPM = (RightMotor_mms - 0.5*DifferenceError     ) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
-  float_t LeftMotor_RPM  = (LeftMotor_mms  + 0.5*DifferenceError*sign) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
+  float_t LeftMotor_RPM  = (LeftMotor_mms  + 0.5*DifferenceError*Sign) * 60.0/(WHEEL_RADIUS_MM* 2*PI);
 
   // convert motor-speed from RPM to Volt:
   float_t RightMotor_Volt = RightMotor_RPM * 255.0/69.0;

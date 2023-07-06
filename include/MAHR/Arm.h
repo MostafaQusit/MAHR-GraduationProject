@@ -11,7 +11,7 @@
 #define QUARTER_STEP    0.2500
 #define EIGHTH_STEP     0.1250
 #define SIXTEENTH_STEP  0.0625
-#define MICROSTEP       EIGHTH_STEP 
+#define MICROSTEP       QUARTER_STEP 
 
 #define STEPPER_PPR     (200.0/MICROSTEP)   // Stepper Resolution in (Pulse Per Resolution -> PPR)
 #define LINK1_LENGTH_MM 185.0               // link1 length in (mm)
@@ -147,11 +147,11 @@ void Arm_Setup(float_t MaxSpeed_pps, float_t Acceleration_ppss){
 void Arm_AnglesUpdate(){
     if(robot_mode == MANUAL_MODE){
         // Update the Target Positions:
-        armX_position += /*0.03*/ 0.04 * arm_directions[X];
-        armY_position += /*0.03*/ 0.04 * arm_directions[Y];
-        pitch_angle   += /*0.04*/ 0.05 * arm_directions[P];
-        roll_angle    += /*0.03*/ 0.04 * arm_directions[R];
-        grip_angle    += /*0.04*/ 0.04 * arm_directions[G];
+        armX_position += /*0.03*/ 0.12 * arm_directions[X];
+        armY_position += /*0.03*/ 0.12 * arm_directions[Y];
+        pitch_angle   += /*0.04*/ 0.15 * arm_directions[P];
+        roll_angle    += /*0.03*/ 0.12 * arm_directions[R];
+        grip_angle    += /*0.04*/ 0.12 * arm_directions[G];
         
         // Apply the constrains on Arm End-Effector Position:
         float_t radius = sqrtf(powf(armX_position,2) + powf(armY_position,2));
@@ -200,25 +200,29 @@ void Arm_AnglesUpdate(){
  * @brief   Run all joint simultaneously to reach the required position of robotic arm
  */
 void Arm_RunToPosition(){ 
-    // idea 1.0: (setSpeed & runSpeed) together [Sequential]
+    /* idea 1.0: (setSpeed & runSpeed) together [Sequential]
     link1.setSpeed( 2000/MICROSTEP * sign<long>(link1.distanceToGo()) );    link1.runSpeed();
     link2.setSpeed( 2000/MICROSTEP * sign<long>(link2.distanceToGo()) );    link2.runSpeed();
     lwrst.setSpeed( 2000/MICROSTEP * sign<long>(lwrst.distanceToGo()) );    lwrst.runSpeed();
     rwrst.setSpeed( 2000/MICROSTEP * sign<long>(rwrst.distanceToGo()) );    rwrst.runSpeed();
-
-
-    /* idea 2.0: (setSpeed & runSpeed) together [loop]
-    while((link1.distanceToGo() != 0 || link1.speed()) || 
-          (link2.distanceToGo() != 0 || link2.speed()) || 
-          (lwrst.distanceToGo() != 0 || lwrst.speed()) || 
-          (rwrst.distanceToGo() != 0 || rwrst.speed())   ){
-
-            link1.setSpeed( 500/MICROSTEP * sign<long>(link1.distanceToGo()) );    link1.runSpeed();
-            link2.setSpeed( 500/MICROSTEP * sign<long>(link2.distanceToGo()) );    link2.runSpeed();
-            lwrst.setSpeed( 500/MICROSTEP * sign<long>(lwrst.distanceToGo()) );    lwrst.runSpeed();
-            rwrst.setSpeed( 500/MICROSTEP * sign<long>(rwrst.distanceToGo()) );    rwrst.runSpeed();
-    }
     */
+
+    // idea 2.0: (setSpeed & runSpeed) together [loop]
+    link1.setSpeed( 500 / MICROSTEP * sign<long>(link1.distanceToGo()));
+    link2.setSpeed( 500 / MICROSTEP * sign<long>(link2.distanceToGo()));
+    lwrst.setSpeed( 500 / MICROSTEP * sign<long>(lwrst.distanceToGo()));
+    rwrst.setSpeed( 500 / MICROSTEP * sign<long>(rwrst.distanceToGo()));
+    while(link1.distanceToGo() != 0 || 
+          link2.distanceToGo() != 0 || 
+          lwrst.distanceToGo() != 0 || 
+          rwrst.distanceToGo() != 0   ){
+
+            if(link1.distanceToGo() != 0) {link1.runSpeed();}
+            if(link2.distanceToGo() != 0) {link2.runSpeed();}
+            if(lwrst.distanceToGo() != 0) {lwrst.runSpeed();}
+            if(rwrst.distanceToGo() != 0) {rwrst.runSpeed();}
+    }
+    
 
     /* idea 3.0: (run) [Sequential]
     link1.run();

@@ -10,7 +10,7 @@ void setup() {
   Serial.begin(115200);
   while(!Serial){}
 
-  zAxis_Setup(1000, 500);
+  zAxis_Setup(2000, 500);
   Encoders_Setup();
   COM_Slave1Setup();
   Mp3_Setup(30);
@@ -18,10 +18,11 @@ void setup() {
 
 void loop() {
   MotorsEncoders_PrintData();
+  Serial.print(zAxis_direction);
   Encoders_DataUpdate();
-  Motors_RunSpeed();   
+  Motors_RunSpeed();
   if(robot_mode == MANUAL_MODE) {zAxis_RunSpeed();}
-  else                          {zAxis_RunToPosition();}
+  //else                          {zAxis_RunToPosition();}
   Mp3_play(voice_file);
   ESPNOW_Send();
 }

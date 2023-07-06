@@ -51,7 +51,8 @@ void zAxis_Homing() {
   Serial.print(F("Z-Axis Homing... "));
   zAxis_GoTo(-1);   // Go to BOTTOM exterme position
   Serial.println(F("DONE"));
-  zAxis.setCurrentPosition(MAX_TRAVEL_DEG);
+  zAxis_angle = 0;
+  zAxis.setCurrentPosition(zAxis_angle);
 }
 
 /**

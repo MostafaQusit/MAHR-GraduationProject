@@ -209,7 +209,7 @@ void COM_MasterSetup(const char* ssid, const char* password) {
     return;
   }
   esp_now_register_recv_cb(Master_OnDataRecv);  // Call-back
-  esp_now_register_send_cb(OnDataSent);
+  //esp_now_register_send_cb(OnDataSent);
   
   // Register peer:
   peerInfo.channel = CHANNEL;

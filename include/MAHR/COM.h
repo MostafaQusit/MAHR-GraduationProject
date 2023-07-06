@@ -11,8 +11,8 @@ int32_t Channel;    // WiFi Channel
 esp_now_peer_info_t peerInfo;
 
 // MAC Addresses of the devices:
-uint8_t Master_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xC3, 0x10}; // MAC Address of Master ESP32
-uint8_t Slave1_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8}; // MAC Address of Slave1 ESP32
+uint8_t Master_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xDA, 0xA8}; // MAC Address of Slave1 ESP32
+uint8_t Slave1_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xC3, 0x10}; // MAC Address of Master ESP32
 uint8_t Slave2_Address[] = {0x58, 0xBF, 0x25, 0x81, 0xEA, 0xF0}; // MAC Address of Slave2 ESP32
 
 typedef struct master1_messages { // Struct message of Master to Salve1

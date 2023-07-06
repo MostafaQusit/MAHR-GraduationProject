@@ -8,7 +8,7 @@ void setup() {
   Serial.begin(115200);
   while(!Serial){}
 
-  Arm_Setup(2000, 1000);
+  Arm_Setup(3000, 1000);
   COM_Slave2Setup();  
 }
 

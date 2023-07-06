@@ -51,7 +51,6 @@ void ROS_Setup(int32_t BaudRate) {
  * @brief   Send the sensory data (Encoders Reading) to ROS
  */
 void ROS_SendData() {
-  nh.spinOnce();
   
   // Update Encoders message:
   RightEnc.data = RightEncoder_Distance;
@@ -60,6 +59,7 @@ void ROS_SendData() {
   // Publish the Encoders message to ROS:
   RightEncoder_pub.publish(&RightEnc);
   LeftEncoder_pub.publish(&LeftEnc);
+  nh.spinOnce();
 }
 
 /**

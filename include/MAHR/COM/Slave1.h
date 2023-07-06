@@ -26,10 +26,10 @@ void Slave1_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int
       if(motors_linear > 0 && motors_linear <  0.65) { motors_linear  =  0.65; }
       if(motors_linear < 0 && motors_linear > -0.65) { motors_linear  = -0.65; }
 
-      if     (motors_angular >  0.1) { motors_angular =  0.80;  motors_linear  = 0.00; }
-      else if(motors_angular < -0.1) { motors_angular = -0.80;  motors_linear  = 0.00; }
+      if     (motors_angular >  0.1) { motors_angular =  0.65;  motors_linear  = 0.00; }
+      else if(motors_angular < -0.1) { motors_angular = -0.65;  motors_linear  = 0.00; }
       else                           { motors_angular =  0.00;                         }
-      zAxis_direction = constrain(master1_data.zDir, -1.0, 1.0);
+      zAxis_position = master1_data.zPos;
     }
     else{   // mode = MANUAL_MODE
       if(motors_linear  > 0 && motors_linear  <  0.20) { motors_linear  =  0.20; }
@@ -37,7 +37,7 @@ void Slave1_OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int
 
       if(motors_angular > 0 && motors_angular <  0.20) { motors_angular =  0.20; }
       if(motors_angular < 0 && motors_angular > -0.20) { motors_angular = -0.20; }
-      zAxis_position = master1_data.zPos;
+      zAxis_direction = constrain(master1_data.zDir, -1.0, 1.0);
     }
 
     Required_LeftMotor_mms  = constrain(300.0*(motors_linear - motors_angular), -300.0, 300.0);
