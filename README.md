@@ -1,5 +1,5 @@
-## MAHR-GraduationProject
-# Multi-function Autonomous Household Robot - Mechatronics Department
+# MAHR-GraduationProject
+## Multi-function Autonomous Household Robot - Mechatronics Department
 
 Everyday household chores can be painful, boring, and time-consuming actions, which may be unavoidable sometimes. This led to the idea of making an indoor autonomous robot that can perform most of the daily repetitive tasks for us, so we can focus on something else. The first step of developing this robot was deciding what it will be capable of. It needed a robotic arm to lift objects, a wheeled base to navigate the house, a method of communicating with the robot, a strong chassis to overcome small obstacles, and a brain to tackle large ones. Many sensors, microcontrollers, and actuators were used to achieve these required tasks. Multiple programs and software were used to design and evaluate the performance of the robot. Eventually, all these efforts led to the making of a Multi-function Autonomous Household Robot (M.A.H.R).
 
