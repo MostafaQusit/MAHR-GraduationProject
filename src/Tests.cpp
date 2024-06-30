@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <MAHR.h>
 
-#define TEST1
+//#define TEST1
 //#define TEST2
 //#define TEST3
 
